@@ -17,6 +17,7 @@ client/dist-ssr/
 client/*.local
 
 # Backend-specific exclusions
+server/build/
 server/dist/
 server/*.log
 
