@@ -1,6 +1,6 @@
 const deleteaccountController = require('../controllers/deleteaccountController');
 const router= require('express').Router();
 
-router.get('/',deleteaccountController.handleDeleteAccount);
+router.delete('/',deleteaccountController.handleDeleteAccount);
 
 module.exports = router;

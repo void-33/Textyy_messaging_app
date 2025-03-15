@@ -3,7 +3,7 @@ const express = require('express');
 const helmet = require('helmet');
 const {rateLimit} = require('express-rate-limit');
 const cors = require('cors');
-const corsOptions = require('./config/corsOptions');
+const {expressCorsOptions} = require('./config/corsOptions');
 const cookieParser = require('cookie-parser');
 
 const limiter = rateLimit({
@@ -17,7 +17,7 @@ const app = express();
 //? other middlewares are to be used
 app.use(helmet());
 app.use(limiter);
-app.use(cors(corsOptions));
+app.use(cors(expressCorsOptions));
 
 app.use(express.json({limit: "10kb"}));
 app.use(express.urlencoded({extended: true}));
