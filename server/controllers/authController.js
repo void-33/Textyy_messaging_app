@@ -2,6 +2,64 @@ const User = require("../models/userModel");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+//fucntion to register new users
+const handleRegister = async (req, res) => {
+    //ensuring username and passwords are provided
+    if (!req.body.username || !req.body.password) {
+        return res.status(400).json({ success: false, message: 'Username or password required.' })
+    }
+    //ensuring either email or phoneNo is provided
+    if (!req.body.email && !req.body.phoneNo) {
+        return res.status(400).json({ success: false, message: 'Email or Phone number required.' })
+    }
+
+    //checking for duplicate registers
+    //duplicate username:
+    let duplicate = await User.findOne({ username: req.body.username }).exec();
+    if (duplicate) {
+        return res.status(409).json({ success: false, message: 'Username already taken' })
+    }
+
+    // duplicate Email:
+    if (req.body.email) {
+        duplicate = await User.findOne({ email: req.body.email }).exec();
+        if (duplicate) {
+            return res.status(409).json({ success: false, message: 'Email alredy exists' })
+        }
+    }
+
+    //duplicate phoneNo:
+    if (req.body.phoneNo) {
+        duplicate = await User.findOne({ phoneNo: req.body.phoneNo }).exec();
+        if (duplicate) {
+            return res.status(409).json({ success: false, message: 'Phone number alredy exists' })
+        }
+    }
+
+    try {
+        //hashing password
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        const newUser = await User.create({
+            username: req.body.username,
+            password: hashedPassword,
+            email: req.body.email,
+            phoneNo: req.body.phoneNo,
+        })
+        return res.status(201).json({ success: true, message: 'New user registered successfully' })
+    } catch (err) {
+        //handle validation error(for email and phone number)
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ success: false, message: err.message })
+        }
+        //handle rest of the generic error
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+}
+
+
+
+//function to handle login
 const handleLogin = async (req, res) => {
     //ensuring email or number and password are provided
     if ((!req.body.email && !req.body.phoneNo) || !req.body.password) {
@@ -47,4 +105,86 @@ const handleLogin = async (req, res) => {
     }
 }
 
-module.exports = { handleLogin };
+
+
+//function to handle Logout
+const handleLogout = async (req, res) => {
+    // !delete accesstoken on client side
+
+    if (!req.cookies?.jwt) { return res.sendStatus(205); } //no content
+    const refreshToken = req.cookies.jwt;
+
+    const foundUser = await User.findOne({ refreshToken }).exec();
+
+    if (!foundUser) {
+        res.clearCookie('jwt', { httpOnly: true });
+        return res.sendStatus(204);
+    }
+
+    foundUser.refreshToken = '';
+    foundUser.save();
+
+    res.clearCookie('jwt', { httpOnly: true });
+    res.status(200).json({ success: true, message: "Successfully logged out" });
+};
+
+
+
+//function to delete account
+const handleDeleteAccount = async (req, res) => {
+    if (!req.cookies?.jwt) { return res.sendStatus(401) } //unauthorized
+    const refreshToken = req.cookies.jwt;
+
+    const foundUser = await User.findOne({ refreshToken }).exec();
+
+    if (!foundUser) {
+        res.clearCookie('jwt', { httpOnly: true });
+        return res.sendStatus(403); //forbidden
+    }
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer')) { return res.sendStatus(401) } //Unauthorized
+    const accessToken = authHeader.split(' ')[1];
+
+    if (accessToken) {
+        try {
+            const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET)
+            if (decoded.username !== foundUser.username) {
+                return res.sendStatus(403); //forbidden
+            }
+            await foundUser.deleteOne();
+            res.clearCookie('jwt', { httpOnly: true });
+            return res.status(200).json({ success: true, message: "Successfully deleted you account" });
+        } catch (err) {
+            //console.log(err.message);
+            return res.sendStatus(403);
+        }
+    }
+}
+
+
+
+//function to generate new accessToken
+const handleNewAccessToken = async (req, res) => {
+    if (!req.cookies?.jwt) { return res.sendStatus(401); } //Unauthorized
+    const refreshToken = req.cookies.jwt;
+
+    const foundUser = await User.findOne({ refreshToken }).exec();
+
+    if (!foundUser) { return res.sendStatus(403); } //forbidden
+
+    try {
+        const decoded = jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        if (decoded.username !== foundUser.username) { return res.sendStatus(403); }
+
+        const accessToken = jwt.sign({ username: decoded.username },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
+
+        return res.status(200).json({ accessToken });
+    } catch (err) {
+        return res.sendStatus(403);
+    }
+}
+
+module.exports = { handleRegister, handleLogin, handleLogout, handleDeleteAccount, handleNewAccessToken };
