@@ -1,0 +1,19 @@
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../contexts/authContext";
+import { useEffect, useState } from "react";
+
+const PrivateRoutes = () => {
+    const { isAuthenticated, checkAuth } = useAuth();
+    const [loading, setLoading] = useState(true);
+    useEffect(()=>{
+        const verify =async ()=>{
+            await checkAuth();
+            setLoading(false);
+        }
+        verify();
+    },[])
+    if(loading) return <div>Loading </div>; 
+    return isAuthenticated ? <Outlet /> : <Navigate to='/login' replace/>
+}
+
+export default PrivateRoutes;

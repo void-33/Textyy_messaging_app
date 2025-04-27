@@ -19,7 +19,7 @@ const userSchema = new Schema({
     phoneNo: {
         type: String,
         validate: {
-            validator : function (no) {
+            validator: function (no) {
                 return no === '' || /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/.test(String(no));
             },
             message: (props) => `'${props.value}' is not valid`,
@@ -34,12 +34,31 @@ const userSchema = new Schema({
         unique: true
     },
 
+    firstName: {
+        type: String,
+        required: [true, 'First name is required'],
+    },
+    lastName: {
+        type: String,
+        required: [true, 'Last name is required'],
+    },
+
     password: {
         type: String,
         required: [true, "password is required"],
-      },
+    },
+
+    birthday: {
+        type: Date,
+        required: [true, 'Birthday is required'],
+    },
 
     refreshToken: String,
+
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }],
 })
 
 module.exports = mongoose.model('user', userSchema);

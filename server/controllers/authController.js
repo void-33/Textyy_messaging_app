@@ -3,14 +3,28 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 //fucntion to register new users
+// expected req = username, password, email||phoneNo, birthday, firstName, lastName
+// /api/auth/register
 const handleRegister = async (req, res) => {
     //ensuring username and passwords are provided
     if (!req.body.username || !req.body.password) {
-        return res.status(400).json({ success: false, message: 'Username or password required.' })
+        return res.status(400).json({ success: false, message: 'Username or password required' })
     }
     //ensuring either email or phoneNo is provided
     if (!req.body.email && !req.body.phoneNo) {
-        return res.status(400).json({ success: false, message: 'Email or Phone number required.' })
+        return res.status(400).json({ success: false, message: 'Email or Phone number required' })
+    }
+
+    //ensuring bithday,firstname and lastname are provided
+    if (!req.body.birthday || !req.body.firstName || !req.body.lastName) {
+        return res.status(400).json({ success: false, message: 'Complete credentials required' })
+    }
+    //convert birthday string to date
+    const birthday = new Date(req.body.birthday);
+
+    //ensuring provided birthday is in correct format
+    if (isNaN(birthday)) {
+        return res.status(400).json({ success: false, message: 'Invalid birthday format' })
     }
 
     //checking for duplicate registers
@@ -40,11 +54,15 @@ const handleRegister = async (req, res) => {
         //hashing password
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
+
         const newUser = await User.create({
             username: req.body.username,
             password: hashedPassword,
             email: req.body.email,
             phoneNo: req.body.phoneNo,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            birthday: birthday,
         })
         return res.status(201).json({ success: true, message: 'New user registered successfully' })
     } catch (err) {
@@ -77,13 +95,19 @@ const handleLogin = async (req, res) => {
     const passwordMatch = await bcrypt.compare(req.body.password, foundUser.password);
     if (passwordMatch) {
         const accessToken = jwt.sign(
-            { username: foundUser.username },
+            {
+                username: foundUser.username,
+                id: foundUser._id,
+            },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
         );
 
         const refreshToken = jwt.sign(
-            { username: foundUser.username },
+            {
+                username: foundUser.username,
+                id: foundUser._id,
+            },
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
         );
@@ -166,25 +190,39 @@ const handleDeleteAccount = async (req, res) => {
 
 //function to generate new accessToken
 const handleNewAccessToken = async (req, res) => {
-    if (!req.cookies?.jwt) { return res.sendStatus(401); } //Unauthorized
+    if (!req.cookies?.jwt) { return res.sendStatus(401) } //Unauthorized
     const refreshToken = req.cookies.jwt;
 
     const foundUser = await User.findOne({ refreshToken }).exec();
 
-    if (!foundUser) { return res.sendStatus(403); } //forbidden
+    if (!foundUser) { return res.sendStatus(403) } //forbidden
 
     try {
         const decoded = jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET);
-        if (decoded.username !== foundUser.username) { return res.sendStatus(403); }
+        if (decoded.username !== foundUser.username) { return res.sendStatus(403) }
 
-        const accessToken = jwt.sign({ username: decoded.username },
+        const accessToken = jwt.sign({ username: decoded.username, id: decoded.id },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
 
-        return res.status(200).json({ accessToken });
+        return res.status(200).json({ success: true, message: 'Accesstoken refreshed', accessToken });
     } catch (err) {
         return res.sendStatus(403);
     }
 }
 
-module.exports = { handleRegister, handleLogin, handleLogout, handleDeleteAccount, handleNewAccessToken };
+//function to verify accesstoken
+const handleAccessTokenVerification = (req, res) => {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader?.startsWith('Bearer')) return res.status(401).json({ success: false, message: 'Token misssing' }) //unauthorized
+    const token = authHeader.split(" ")[1];
+    if (!token) return res.status(401).json({ success: false, message: 'Token missing' })
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.sendStatus(403);
+        } //invalid token
+        return res.status(200).json({ success: true, message: 'Token valid', user: decoded.username });
+    });
+}
+
+module.exports = { handleRegister, handleLogin, handleLogout, handleDeleteAccount, handleNewAccessToken, handleAccessTokenVerification };

@@ -2,14 +2,18 @@ import React, { useRef, useState, useEffect } from 'react'
 import textyyLogo from '../assets/textyy.png'
 import owl from '../assets/owl.png'
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { setAccessToken } from '../utilities/accessToken';
+import { useAuth } from '../contexts/authContext';
 
-//interface for credentials
+//interface for credentials state
 interface Credentials {
     email: string,
     password: string,
 }
 const Login: React.FC = () => {
     const navigate = useNavigate();
+    const {login} = useAuth();
 
     //state for credentials
     const [creds, setCreds] = useState<Credentials>({ email: '', password: '' });
@@ -43,9 +47,35 @@ const Login: React.FC = () => {
     }
 
     //handle form submission
-    const handleSubmit = (e: React.FormEvent): void => {
+    const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
-        //! rest of the logic 
+        //! rest of the logic  
+        const body = {
+            email: creds.email,
+            password: creds.password,
+        }
+        try {
+            const response = await axios.post('http://localhost:3500/api/auth/login', body,
+                { withCredentials: true }
+            )
+            if (response.data.success) {
+                //? snackbar to show success message
+
+                setCreds({ email: '', password: '' })
+
+                setAccessToken(response.data?.accessToken);
+                login();
+                navigate('/dashboard');
+            }else{
+                alert(response.data.message);
+            }
+        }
+        catch (err) {
+            if(axios.isAxiosError(err)){
+                alert(err.response?.data.message);
+            }
+            //? snackbar to show error message
+        }
     }
 
     return (
@@ -69,13 +99,13 @@ const Login: React.FC = () => {
                             {/* email field */}
                             <div className='rounded-md h-11 mb-3 border-2 focus-within:border-blue-600 group relative w-full'>
                                 <label htmlFor="emailArea" ref={emailLabel} className='text-blue-500 rounded-md top-2 left-1 transition-all ease-in absolute group-focus-within:-translate-y-5 group-focus-within:scale-75 group-focus-within:z-50 group-focus-within:bg-slate-100 group-focus-within:hover:cursor-default hover:cursor-text'>Email</label>
-                                <input type="email" name='email' id='emailArea' onChange={handleInputChange} required className='bg-slate-100 rounded-md focus:outline-none w-full h-full px-2 text-lg' />
+                                <input type="email" value={creds.email} name='email' id='emailArea' onChange={handleInputChange} required className='bg-slate-100 rounded-md focus:outline-none w-full h-full px-2 text-lg' />
                             </div>
 
                             {/* password field */}
                             <div className='rounded-md h-11 mb-3 border-2 focus-within:border-blue-600 group relative w-full'>
                                 <label htmlFor="passwordArea" ref={passwordLabel} className='text-blue-500 rounded-md top-2 left-1 transition-all ease-in absolute group-focus-within:-translate-y-5 group-focus-within:scale-75 group-focus-within:z-50 group-focus-within:bg-slate-100 group-focus-within:hover:cursor-default hover:cursor-text'>Password</label>
-                                <input type="password" name='password' id='passwordArea' onChange={handleInputChange} required className='bg-slate-100 rounded-md focus:outline-none w-full h-full px-2 text-lg' />
+                                <input type="password" value={creds.password} name='password' id='passwordArea' onChange={handleInputChange} required className='bg-slate-100 rounded-md focus:outline-none w-full h-full px-2 text-lg' />
                             </div>
 
                             {/* login button */}
@@ -92,7 +122,6 @@ const Login: React.FC = () => {
                             <div className='w-full text-center'>
                                 <button type='button' onClick={goToRegister} className='w-max bg-yellow-400 rounded-md border-slate-700 border-2 text-slate-700 p-1'>Create New Account</button>
                             </div>
-
                         </form>
                     </main>
                 </div>

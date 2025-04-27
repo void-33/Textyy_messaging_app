@@ -6,7 +6,8 @@ router.post('/register',authController.handleRegister);
 router.post('/login',authController.handleLogin);
 router.get('/logout',authController.handleLogout);
 router.delete('/deleteaccount',authController.handleDeleteAccount);
-router.get('/newaccesstoken',authController.handleNewAccessToken);
+router.get('/newtoken',authController.handleNewAccessToken);
+router.get('/verifytoken',authController.handleAccessTokenVerification)
 
 
 module.exports = router;

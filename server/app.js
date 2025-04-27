@@ -6,6 +6,9 @@ const cors = require('cors');
 const {expressCorsOptions} = require('./config/corsOptions');
 const cookieParser = require('cookie-parser');
 
+
+const {join} = require('node:path');
+
 const limiter = rateLimit({
     limit: 3000,
     windowMs: 60 * 60 * 1000, //1hr
