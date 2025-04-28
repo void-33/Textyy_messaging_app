@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import { getAccessToken, setAccessToken } from "../utilities/accessToken";
+import { getAccessToken, setAccessToken } from "./accessToken";
 import axios from "axios";
 
 interface AuthContextType {

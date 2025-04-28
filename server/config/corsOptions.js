@@ -1,4 +1,6 @@
-const allowedOrigins = require("./allowedOrigins")
+const allowedOrigins = [
+    'http://localhost:3000'//react front end
+]
 
 const expressCorsOptions = {
     origin: (origin,callback)=>{

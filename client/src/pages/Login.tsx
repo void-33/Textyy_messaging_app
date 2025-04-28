@@ -3,7 +3,7 @@ import textyyLogo from '../assets/textyy.png'
 import owl from '../assets/owl.png'
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { setAccessToken } from '../utilities/accessToken';
+import { setAccessToken } from '../contexts/accessToken';
 import { useAuth } from '../contexts/authContext';
 
 //interface for credentials state

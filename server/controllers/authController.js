@@ -97,7 +97,7 @@ const handleLogin = async (req, res) => {
         const accessToken = jwt.sign(
             {
                 username: foundUser.username,
-                id: foundUser._id,
+                userId: foundUser._id.toString(),
             },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
@@ -106,7 +106,7 @@ const handleLogin = async (req, res) => {
         const refreshToken = jwt.sign(
             {
                 username: foundUser.username,
-                id: foundUser._id,
+                userId: foundUser._id,
             },
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
@@ -201,7 +201,7 @@ const handleNewAccessToken = async (req, res) => {
         const decoded = jwt.verify(foundUser.refreshToken, process.env.REFRESH_TOKEN_SECRET);
         if (decoded.username !== foundUser.username) { return res.sendStatus(403) }
 
-        const accessToken = jwt.sign({ username: decoded.username, id: decoded.id },
+        const accessToken = jwt.sign({ username: decoded.username, userId: decoded.userId },
             process.env.ACCESS_TOKEN_SECRET,
             { expiresIn: process.env.ACCESS_TOKEN_EXPIRY });
 

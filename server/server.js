@@ -34,7 +34,8 @@ mongoose.connection.once('open',()=>{
     server.on('error',()=>{
         console.log('Error connecting to the server. Try again later!!!');
     })
-
-    
-    
 })
+
+
+//? multiple users accross multiple tabs
+//? socket groups(1-1 and multiple)
