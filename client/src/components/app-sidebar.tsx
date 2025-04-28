@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/sidebar";
 import {
   MessageCircle,
+  MoonStarIcon,
   PhoneCall,
   Settings,
-  UserPen,
+  SunIcon,
   UsersRound,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -20,9 +21,10 @@ import TextyyLogo from "../assets/owl.png";
 import {
   AppSidebarMinimizeButton,
   AppSidebarMaximizeButton,
-} from "./cusotomSidebarTriggers";
+} from "./customSidebarTriggers";
 
-import { Switch } from "@/components/ui/switch";
+import { useState } from "react";
+import { ProfileDropdownMenu } from "./profile-dropdown";
 
 const items = [
   {
@@ -53,7 +55,9 @@ export function AppSidebar() {
   const toggleTheme = () => {
     const html = document.documentElement;
     html.classList.toggle("dark");
+    theme === "dark" ? setTheme("light") : setTheme("dark");
   };
+  const [theme, setTheme] = useState<String>("light");
 
   return (
     <Sidebar collapsible="icon" variant="floating" side="left">
@@ -80,7 +84,10 @@ export function AppSidebar() {
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton
+                asChild
+                className="pr-5 w-[98%] hover:border-1 hover:border-gray-400"
+              >
                 <a href={item.url} className="overflow-visible">
                   <item.icon />
                   <span>{item.title}</span>
@@ -93,12 +100,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Switch onClick={toggleTheme} />
+            <SidebarMenuButton
+              onClick={toggleTheme}
+              className="my-2 hover:cursor-pointer border-1 hover:border-gray-400 h-9"
+            >
+              {theme === "dark" ? <MoonStarIcon /> : <SunIcon />}
+              <span>Toggle dark mode</span>
+            </SidebarMenuButton>
             <SidebarMenuButton asChild>
-              <Link to="#">
-                <UserPen />
-                <span>Profile</span>
-              </Link>
+              <ProfileDropdownMenu state={state} />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

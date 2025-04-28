@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Video, Phone, Search, SendIcon } from "lucide-react";
-import { ChatsInfoButton } from "@/components/cusotomSidebarTriggers";
+import { ChatsInfoButton } from "@/components/customSidebarTriggers";
 import { Input } from "./ui/input";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { disconnectSocket, getSocket, initSocket } from "@/contexts/socket";

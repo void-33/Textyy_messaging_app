@@ -6,5 +6,8 @@ const setAccessToken = (a: string) => {
 const getAccessToken = ()=>{
     return accessToken;
 }
+const clearAccessToken = ()=>{
+    accessToken = '';
+}
 
-export {setAccessToken,getAccessToken}
+export {setAccessToken,getAccessToken,clearAccessToken}

@@ -132,6 +132,7 @@ const handleLogin = async (req, res) => {
 
 
 //function to handle Logout
+//endpoint GET /api/auth/logout
 const handleLogout = async (req, res) => {
     // !delete accesstoken on client side
 
