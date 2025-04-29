@@ -26,9 +26,10 @@ export function ChatInterface() {
   useEffect(() => {
     initSocket();
     const socket = getSocket();
-
+    
     socket.on("connect", () => {
-      alert(`Connected with socket id: ${socket.id}`);
+      console.log(`Connected with socket id: ${socket.id}`);
+      socket.emit('register');
     });
 
     socket.on('chatMessage',(msgdata)=>{
@@ -44,7 +45,7 @@ export function ChatInterface() {
     e.preventDefault();
     if (inputText.trim()) {
       const socket = getSocket();
-      socket?.emit("chatMessage", inputText);
+      socket?.emit("chatMessage", {inputText});
 
       setMessages((prev) => [...prev, inputText]);
       setInputText("");

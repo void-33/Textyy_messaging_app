@@ -6,7 +6,7 @@ import { ChatSettings } from "@/components/chats-settings";
 
 const Dashboard = () => {
   return (
-    <div className="flex">
+    <div className="flex h-[100vh]">
       <SidebarProvider className="w-fit">
         <AppSidebar />
       </SidebarProvider>

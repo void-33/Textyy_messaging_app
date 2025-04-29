@@ -7,12 +7,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { clearAccessToken } from "@/contexts/accessToken";
 import { useAuth } from "@/contexts/authContext";
-import axios from "axios";
 
 import { UserRoundPen } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface ProfileDropdownMenuProps {
   state: "expanded" | "collapsed";
@@ -21,28 +18,7 @@ interface ProfileDropdownMenuProps {
 export function ProfileDropdownMenu(props: ProfileDropdownMenuProps) {
   //state of sidebar either collapsed or exapanded
   const { state } = props;
-  const navigate = useNavigate();
   const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:3500/api/auth/logout",
-        {
-          withCredentials: true,
-        }
-      );
-      if (response.data.success) {
-        clearAccessToken();
-        logout();
-        navigate("/login");
-      }
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        alert(err.response?.data.message);
-      }
-    }
-  };
 
   return (
     <DropdownMenu>
@@ -72,7 +48,7 @@ export function ProfileDropdownMenu(props: ProfileDropdownMenuProps) {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={handleLogout} className="hover:cursor-pointer">Log out</DropdownMenuItem>
+          <DropdownMenuItem onClick={logout} className="hover:cursor-pointer">Log out</DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>

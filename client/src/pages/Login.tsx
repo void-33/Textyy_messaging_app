@@ -13,7 +13,7 @@ interface Credentials {
 }
 const Login: React.FC = () => {
     const navigate = useNavigate();
-    const {login} = useAuth();
+    const {setIsAuthenticated} = useAuth();
 
     //state for credentials
     const [creds, setCreds] = useState<Credentials>({ email: '', password: '' });
@@ -64,7 +64,7 @@ const Login: React.FC = () => {
                 setCreds({ email: '', password: '' })
 
                 setAccessToken(response.data?.accessToken);
-                login();
+                setIsAuthenticated(true);
                 navigate('/dashboard');
             }else{
                 alert(response.data.message);
