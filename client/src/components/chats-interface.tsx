@@ -4,8 +4,8 @@ import { ChatsInfoButton } from "@/components/customSidebarTriggers";
 import { Input } from "./ui/input";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { disconnectSocket, getSocket, initSocket } from "@/contexts/socket";
-import { useSelectedUser } from "@/contexts/selectedUserContext";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
+import { useParams } from "react-router-dom";
 
 export function ChatInterface() {
   interface Messages {
@@ -33,26 +33,18 @@ export function ChatInterface() {
   ];
   const [messages, setMessages] = useState<Messages[]>([]);
   const [inputText, setInputText] = useState<string>("");
-  const { selectedUserId } = useSelectedUser();
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
 
   const protectedFetch = useProtectedFetch();
+  const { username } = useParams();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const fetchMessage = async () => {
-    const response = await protectedFetch(
-      `/api/message/get/${selectedUserId}`,
-      "GET"
-    );
-    return response;
-  };
 
   useEffect(() => {
     initSocket();
     const socket = getSocket();
 
     socket.on("connect", () => {
-      console.log(`Connected with socket id: ${socket.id}`);
       socket.emit("register");
     });
 
@@ -60,23 +52,44 @@ export function ChatInterface() {
       setMessages((prev) => [...prev, message]);
     });
 
+    //?maybe not needed
     return () => {
       disconnectSocket();
     };
   }, []);
 
   useEffect(() => {
-    const socket = getSocket();
-    if (selectedUserId && socket.connected) {
-      socket.emit("joinRoom", selectedUserId);
+    if (username) {
+      const fetch = async () => {
+        try {
+          const response = await protectedFetch(
+            `/api/user/getidbyusername/${username}`,
+            "GET"
+          );
+          const userId = response?.data.userId;
+          setSelectedUserId(response?.data.userId);
+
+          const socket = getSocket();
+          if (userId && socket.connected) {
+            socket.emit("joinRoom", userId);
+          }
+          if (userId) {
+            const response = await protectedFetch(
+              `/api/message/get/${userId}`,
+              "GET"
+            );
+            setMessages(response?.data?.messages);
+          }
+        } catch (err: any) {
+          alert(err.response.data.message || "Some error occured");
+        }
+      };
+      fetch();
+    } else {
+      setSelectedUserId("");
+      setMessages([]);
     }
-    if (selectedUserId) {
-      (async () => {
-        const response = await fetchMessage();
-        setMessages(response?.data?.messages);
-      })();
-    }
-  }, [selectedUserId]);
+  }, [username]);
 
   useEffect(() => {
     if (messagesEndRef.current) {

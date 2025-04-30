@@ -87,7 +87,7 @@ const Login: React.FC = () => {
 
         setAccessToken(response.data?.accessToken);
         setIsAuthenticated(true);
-        navigate("/dashboard");
+        navigate("/chats");
       } else {
         alert(response.data.message);
       }

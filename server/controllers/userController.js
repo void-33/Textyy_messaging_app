@@ -1,9 +1,9 @@
 const User = require('../models/userModel');
 
 //function to get User ObjectId based on username
-//endpoint /api/user/getbyusername
-const getbyUsername = async (req, res) => {
-    const { username } = req.body;
+//endpoint /api/user/getidbyusername/:username
+const getIdbyUsername = async (req, res) => {
+    const { username } = req.params;
     if (!username) {
         return res.status(400).json({ success: false, message: 'Username required' });
     }
@@ -13,7 +13,7 @@ const getbyUsername = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Username doesnot exists' });
     }
 
-    return res.status(200).json({ success: true, message: 'User found', id: foundUser._id })
+    return res.status(200).json({ success: true, message: 'User found', userId: foundUser._id })
 }
 
 //fucntion to get list of friends of the user
@@ -36,4 +36,25 @@ const getFriends = async(req,res)=>{
     }
 }
 
-module.exports = { getbyUsername, getFriends }
+//function to get users based on their usename search query
+//endpoint GET /api/user/serach?query=someName
+const searchUsers = async (req,res) =>{
+    const query = req.query.query?.trim();
+    
+    if(!query){
+        return res.status(400).json({success:false, message:"Query is required"});
+    }
+
+    try {
+        const users = await User.find({
+            username: {$regex: query, $options: 'i'},
+            _id: {$ne: req.userId},
+        }).select("_id username").limit(10);
+
+        return res.status(200).json({success:true, message: "Succesfully fetched Users",users});
+    } catch (err) {
+        return res.status(500).json({success:false, message: 'Internal Server Error'});
+    }
+}
+
+module.exports = { getIdbyUsername, getFriends, searchUsers };

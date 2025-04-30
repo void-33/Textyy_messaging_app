@@ -85,6 +85,7 @@ const useProtectedFetch = () => {
       }
       
       //? handle other errors
+      throw err;
     }
   };
 

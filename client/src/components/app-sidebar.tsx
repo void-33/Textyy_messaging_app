@@ -29,12 +29,12 @@ import { ProfileDropdownMenu } from "./profile-dropdown";
 const items = [
   {
     title: "Chats",
-    url: "#",
+    url: "/chats",
     icon: MessageCircle,
   },
   {
-    title: "Groups",
-    url: "#",
+    title: "FriendRequests",
+    url: "/friendrequest",
     icon: UsersRound,
   },
   {
@@ -44,7 +44,7 @@ const items = [
   },
   {
     title: "Settings",
-    url: "#",
+    url: "/settings",
     icon: Settings,
   },
 ];
@@ -88,10 +88,10 @@ export function AppSidebar() {
                 asChild
                 className="pr-5 w-[98%] hover:border-1 hover:border-gray-400"
               >
-                <a href={item.url} className="overflow-visible">
+                <Link to={item.url} className="overflow-visible">
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
