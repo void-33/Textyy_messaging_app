@@ -3,16 +3,16 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 //fucntion to register new users
-// expected req = username, password, email||phoneNo, birthday, firstName, lastName
+// expected req = username, password, email, birthday, firstName, lastName
 // /api/auth/register
 const handleRegister = async (req, res) => {
     //ensuring username and passwords are provided
     if (!req.body.username || !req.body.password) {
         return res.status(400).json({ success: false, message: 'Username or password required' })
     }
-    //ensuring either email or phoneNo is provided
-    if (!req.body.email && !req.body.phoneNo) {
-        return res.status(400).json({ success: false, message: 'Email or Phone number required' })
+    //ensuring either email or username is provided
+    if (!req.body.email) {
+        return res.status(400).json({ success: false, message: 'Email required' })
     }
 
     //ensuring bithday,firstname and lastname are provided
@@ -42,14 +42,6 @@ const handleRegister = async (req, res) => {
         }
     }
 
-    //duplicate phoneNo:
-    if (req.body.phoneNo) {
-        duplicate = await User.findOne({ phoneNo: req.body.phoneNo }).exec();
-        if (duplicate) {
-            return res.status(409).json({ success: false, message: 'Phone number alredy exists' })
-        }
-    }
-
     try {
         //hashing password
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -59,14 +51,13 @@ const handleRegister = async (req, res) => {
             username: req.body.username,
             password: hashedPassword,
             email: req.body.email,
-            phoneNo: req.body.phoneNo,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             birthday: birthday,
         })
         return res.status(201).json({ success: true, message: 'New user registered successfully' })
     } catch (err) {
-        //handle validation error(for email and phone number)
+        //handle validation error(for email)
         if (err.name === 'ValidationError') {
             return res.status(400).json({ success: false, message: err.message })
         }
@@ -80,12 +71,12 @@ const handleRegister = async (req, res) => {
 //function to handle login
 const handleLogin = async (req, res) => {
     //ensuring email or number and password are provided
-    if ((!req.body.email && !req.body.phoneNo) || !req.body.password) {
+    if ((!req.body.email && !req.body.username) || !req.body.password) {
         return res.status(400).json({ success: false, message: "Complete credentials required" });
     }
     let foundUser;
     if (req.body.email) { foundUser = await User.findOne({ email: req.body.email }).exec(); }
-    if (req.body.phoneNo) { foundUser = await User.findOne({ phoneNo: req.body.phoneNo }).exec(); }
+    if (req.body.username) { foundUser = await User.findOne({ username: req.body.username }).exec(); }
 
     //if no user is found  
     if (!foundUser) {

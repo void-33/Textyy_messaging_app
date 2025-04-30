@@ -16,18 +16,18 @@ const userSchema = new Schema({
         sparse: true, //only indexes docs with value
         unique: true,
     },
-    phoneNo: {
-        type: String,
-        validate: {
-            validator: function (no) {
-                return no === '' || /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/.test(String(no));
-            },
-            message: (props) => `'${props.value}' is not valid`,
-        },
-        unique: true,
-        index: true,
-        sparse: true,
-    },
+    // phoneNo: {
+    //     type: String,
+    //     validate: {
+    //         validator: function (no) {
+    //             return no === '' || /^\+?(\d[\d-. ]+)?(\([\d-. ]+\))?[\d-. ]+\d$/.test(String(no));
+    //         },
+    //         message: (props) => `'${props.value}' is not valid`,
+    //     },
+    //     unique: true,
+    //     index: true,
+    //     sparse: true,
+    // },
     username: {
         type: String,
         required: [true, 'Username is required'],
@@ -57,7 +57,7 @@ const userSchema = new Schema({
 
     friends: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',
     }],
 })
 

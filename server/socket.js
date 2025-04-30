@@ -3,6 +3,10 @@ const jwt = require('jsonwebtoken');
 
 const users = {}
 
+function getRoomId(userId1, userId2) {
+    return [userId1, userId2].sort().join('_');
+}
+
 module.exports = (io) => {
     // give accessToken as query in socket io 
     io.use((socket, next) => {
@@ -17,11 +21,10 @@ module.exports = (io) => {
         }
     })
     io.on('connection', (socket) => {
-        console.log(`User connected: ${socket.username}`);
 
         socket.on('register', () => {
             users[socket.userId] = socket.id;
-            console.log(`${socket.userId} -> ${users[socket.userId]}`);
+            socket.join(socket.userId);
         });
 
         socket.on('joinRoom', (otherUserId) => {
@@ -29,17 +32,14 @@ module.exports = (io) => {
             socket.join(roomId);
         })
 
-        socket.on('chatMessage', async ({ toUserId, content }) => {
+        socket.on('chatMessage', async (toUserId, content) => {
             const roomId = getRoomId(socket.userId, toUserId);
-            console.log(`${socket.username}- ${content}`);
-
             const message = await Message.create({
                 sender: socket.userId,
                 receiver: toUserId,
                 content,
             })
-            socket.to(roomId).emit('chatMessage', { message });
-            io.to(socket.userId).emit('chatMessageSent', { message });
+            io.to(roomId).emit('chatMessage', message);
 
         })
 

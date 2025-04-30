@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/authContext";
 import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
 import axios, { AxiosRequestConfig } from "axios";
 
-const API_BASE = "http://localhost:3500/api";
+const API_BASE = "http://localhost:3500";
 
 const useProtectedFetch = () => {
   const { logout } = useAuth();
@@ -83,7 +83,8 @@ const useProtectedFetch = () => {
           return;
         }
       }
-      throw err;
+      
+      //? handle other errors
     }
   };
 

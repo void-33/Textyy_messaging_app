@@ -1,9 +1,27 @@
 import { Input } from "./ui/input";
+import useProtectedFetch from "@/hooks/useProtectedFetch";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useSelectedUser } from "@/contexts/selectedUserContext";
 
 export function ChatSidebar() {
-  const arr = Array.from({ length: 100 }, (_, i) => i);
+  const {setSelectedUserId} =useSelectedUser();
+  const protectedFetch = useProtectedFetch();
+
+  const [friends,setFriends] = useState<Array<Record<string, string>>>([]);
+
+  useEffect(() => {
+    const fetchFriends = async () => {
+      const response = await protectedFetch("/api/user/getfriends", "GET");
+      setFriends(response?.data.friends);
+    };
+    fetchFriends();
+  }, []);
+
+  const handleChatClick=(otherUserId:string)=>{
+    setSelectedUserId(otherUserId);
+  }
 
   return (
     <Card className="grow w-[30vw] my-2 hover:cursor-pointer flex flex-col">
@@ -38,16 +56,17 @@ export function ChatSidebar() {
             All Chats
           </h4>
           <div className="grow overflow-scroll w-full scrollbar scrollbar-thumb-gray-400 scrollbar-thumb-rounded-xl scrollbar-w-1.5 dark:scrollbar-thumb-gray-700">
-            {arr.map((index) => (
-              <Card key={index} className="my-2 mr-2">
-                <CardHeader>
-                  <h6 className="text-xs font-semibold tracking-tight lg:text-sm hover:cursor-pointer">
-                    
-                    Name
-                  </h6>
-                </CardHeader>
-              </Card>
-            ))}
+            {friends.map((item) => {
+              return (
+                <Card key={item._id} className="my-2 mr-2" onClick={()=>handleChatClick(item._id)}>
+                  <CardHeader>
+                    <h6 className="text-xs tracking-tight lg:text-sm hover:cursor-pointer">
+                      {item.username}
+                    </h6>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </CardContent>

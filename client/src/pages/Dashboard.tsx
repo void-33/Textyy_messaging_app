@@ -3,21 +3,24 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { ChatSidebar } from "@/components/chats-sidebar";
 import { ChatInterface } from "@/components/chats-interface";
 import { ChatSettings } from "@/components/chats-settings";
+import { SelectedUserProvider } from "@/contexts/selectedUserContext";
 
 const Dashboard = () => {
   return (
-    <div className="flex h-[100vh]">
-      <SidebarProvider className="w-fit">
-        <AppSidebar />
-      </SidebarProvider>
+    <SelectedUserProvider>
+      <div className="flex h-[100vh]">
+        <SidebarProvider className="w-fit">
+          <AppSidebar />
+        </SidebarProvider>
 
-      <ChatSidebar />
+        <ChatSidebar />
 
-      <SidebarProvider>
-        <ChatInterface />
-        <ChatSettings />
-      </SidebarProvider>
-    </div>
+        <SidebarProvider>
+          <ChatInterface />
+          <ChatSettings />
+        </SidebarProvider>
+      </div>
+    </SelectedUserProvider>
   );
 };
 

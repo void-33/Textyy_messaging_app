@@ -9,7 +9,7 @@ const verifyJwt = (req, res, next) => {
             return res.sendStatus(403);
         } //invalid token
         req.username = decoded.username;
-        req.userId = decoded.id;
+        req.userId = decoded.userId;
         next();
     });
 }

@@ -16,4 +16,24 @@ const getbyUsername = async (req, res) => {
     return res.status(200).json({ success: true, message: 'User found', id: foundUser._id })
 }
 
-module.exports = { getbyUsername }
+//fucntion to get list of friends of the user
+//endpoint GET /api/user/getfriends
+const getFriends = async(req,res)=>{
+    const userId = req.userId;
+    try{
+        const foundUser = await User.findById(userId).populate("friends","username _id");
+
+        if(!foundUser){
+            return res.status(400).json({success:false, message:"User not found"});
+        }
+
+        const friends = foundUser.friends;
+
+        return res.status(200).json({success:true, message:"Successfully fetched friend list",friends})
+
+    }catch(err){
+        return res.status(500).json({success:false, message:"Internal Server Error"});
+    }
+}
+
+module.exports = { getbyUsername, getFriends }

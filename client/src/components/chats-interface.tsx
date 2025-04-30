@@ -1,11 +1,22 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Video, Phone, Search, SendIcon } from "lucide-react";
+import { Video, Phone, Search, SendIcon, Settings } from "lucide-react";
 import { ChatsInfoButton } from "@/components/customSidebarTriggers";
 import { Input } from "./ui/input";
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { disconnectSocket, getSocket, initSocket } from "@/contexts/socket";
+import { useSelectedUser } from "@/contexts/selectedUserContext";
+import useProtectedFetch from "@/hooks/useProtectedFetch";
 
 export function ChatInterface() {
+  interface Messages {
+    _id: string;
+    sender: string;
+    receiver: string;
+    content: string;
+    read: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }
   const icons = [
     {
       title: "Video Call",
@@ -20,35 +31,67 @@ export function ChatInterface() {
       icon: Search,
     },
   ];
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<Messages[]>([]);
   const [inputText, setInputText] = useState<string>("");
+  const { selectedUserId } = useSelectedUser();
+
+  const protectedFetch = useProtectedFetch();
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const fetchMessage = async () => {
+    const response = await protectedFetch(
+      `/api/message/get/${selectedUserId}`,
+      "GET"
+    );
+    return response;
+  };
 
   useEffect(() => {
     initSocket();
     const socket = getSocket();
-    
+
     socket.on("connect", () => {
       console.log(`Connected with socket id: ${socket.id}`);
-      socket.emit('register');
+      socket.emit("register");
     });
 
-    socket.on('chatMessage',(msgdata)=>{
-      setMessages((prev)=>[...prev,msgdata])
-    })
+    socket.on("chatMessage", async (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
 
     return () => {
       disconnectSocket();
     };
   }, []);
 
+  useEffect(() => {
+    const socket = getSocket();
+    if (selectedUserId && socket.connected) {
+      socket.emit("joinRoom", selectedUserId);
+    }
+    if (selectedUserId) {
+      (async () => {
+        const response = await fetchMessage();
+        setMessages(response?.data?.messages);
+      })();
+    }
+  }, [selectedUserId]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView();
+    }
+  }, [messages]);
+
   const handleSendMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (inputText.trim()) {
       const socket = getSocket();
-      socket?.emit("chatMessage", {inputText});
-
-      setMessages((prev) => [...prev, inputText]);
-      setInputText("");
+      if (selectedUserId) {
+        socket?.emit("chatMessage", selectedUserId, inputText);
+        setInputText("");
+      }
     }
   };
 
@@ -57,46 +100,77 @@ export function ChatInterface() {
   };
   return (
     <>
-      <Card className="w-full my-2 ml-2 mr-0 p-1">
-        <CardContent className="pl-1 pr-2">
-          <Card className="w-full mx-0.5 my-1">
-            <CardContent className="flex justify-between">
-              <h2 className="text-xs font-normal tracking-tight lg:text-sm">
-                UserName
-              </h2>
-              <div className="flex gap-10">
-                {icons.map((item) => (
-                  <item.icon
-                    key={item.title}
-                    className="w-5 hover:cursor-pointer"
+      {selectedUserId && (
+        <Card className="w-full my-2 ml-2 mr-0 p-1">
+          <CardContent className="pl-1 pr-2">
+            <Card className="w-full mx-0.5 my-1">
+              <CardContent className="flex justify-between">
+                <h2 className="text-xs tracking-tight lg:text-sm">UserName</h2>
+                <div className="flex gap-10">
+                  {icons.map((item) => (
+                    <item.icon
+                      key={item.title}
+                      className="w-5 hover:cursor-pointer"
+                    />
+                  ))}
+                  <ChatsInfoButton />
+                </div>
+              </CardContent>
+            </Card>
+            <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col">
+              {/* Load messages logic here */}
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`my-2 mx-4 flex flex-row ${
+                    message.sender === selectedUserId
+                      ? "justify-start"
+                      : "justify-end"
+                  }`}
+                >
+                  <Card className="w-fit h-fit">
+                    <CardContent>
+                      <p>{message.content}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+              {/* Empty div to scroll to  */}
+              <div ref={messagesEndRef} />
+            </div>
+            <Card className="w-full mx-0.5 my-1">
+              <CardContent>
+                <form
+                  className="flex justify-between"
+                  onSubmit={handleSendMessage}
+                >
+                  <Input
+                    type="text"
+                    placeholder="Write a message"
+                    className="w-[95%]"
+                    value={inputText}
+                    onChange={handleInputChange}
                   />
-                ))}
-                <ChatsInfoButton />
-              </div>
-            </CardContent>
-          </Card>
-          <div className="w-full my-2 h-[73vh] border-2 rounded-2xl"></div>
-          <Card className="w-full mx-0.5 my-1">
-            <CardContent>
-              <form
-                className="flex justify-between"
-                onSubmit={handleSendMessage}
-              >
-                <Input
-                  type="text"
-                  placeholder="Write a message"
-                  className="w-[95%]"
-                  value={inputText}
-                  onChange={handleInputChange}
-                />
-                <button type="submit">
-                  <SendIcon className="mt-1 hover:cursor-pointer" />
-                </button>
-              </form>
-            </CardContent>
-          </Card>
-        </CardContent>
-      </Card>
+                  <button type="submit">
+                    <SendIcon className="mt-1 hover:cursor-pointer" />
+                  </button>
+                </form>
+              </CardContent>
+            </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {!selectedUserId && (
+        <Card className="w-full my-2 ml-2 mr-0 p-1 flex justify-center">
+          <CardContent className="flex h-[40%] flex-col items-center">
+            <Settings size={150} strokeWidth={0.75} className="inline-block" />
+            <h2 className="text-sm tracking-tight lg:text-xl">
+              Select a Conversation to start chatting
+            </h2>
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
