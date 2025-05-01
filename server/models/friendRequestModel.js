@@ -23,6 +23,6 @@ const friendRequestSchema = new Schema({
     },
 }, { timestamps: true })
 
-friendRequestSchema.index({delcinedAt:1},{expireAfterSeconds: 365 * 24 * 60 * 60}); //1 year
+friendRequestSchema.index({delcinedAt:1},{expireAfterSeconds: 30 * 24 * 60 * 60}); //1 year
 
 module.exports = mongoose.model('friendRequest', friendRequestSchema);
