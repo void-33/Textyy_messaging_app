@@ -22,6 +22,7 @@ const App = () => {
               <Route path="chats" element={<ChatSidebar />} />
               <Route path="chats/:username" element={<ChatSidebar />} />
               <Route path="friendrequest" element={<FriendRequestSidebar />} />
+              <Route path="friendrequest/:username" element={<FriendRequestSidebar />} />
             </Route>
             <Route path="settings" element={<Settings />} />
           </Route>

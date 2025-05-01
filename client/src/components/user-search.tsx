@@ -2,7 +2,7 @@ import { Button } from "./ui/button";
 import { Card } from "@/components/ui/card";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 interface UserSearchProps {
   searchQuery: string;
@@ -49,6 +49,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
 
   const protectedFetch = useProtectedFetch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchFriendRequestsAndFriends = async () => {
     const friendReqRes = await protectedFetch(
@@ -154,7 +155,10 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
   );
 
   const handleUserSelection = (username: string) => {
-    navigate(`/chats/${username}`);
+    const basePath = location.pathname.startsWith("/friendrequest")
+    ? "/friendrequest"
+    : "/chats";
+    navigate(`${basePath}/${username}`);
   };
 
   return (
