@@ -1,12 +1,12 @@
-import { ChatSidebar } from "@/components/chats-sidebar";
 import { ChatInterface } from "@/components/chats-interface";
 import { ChatSettings } from "@/components/chats-settings";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Outlet } from "react-router-dom";
 
-const Chat = () => {
+const ChatandFriendRequest = () => {
   return (
     <>
-      <ChatSidebar />
+      <Outlet />
 
       <SidebarProvider defaultOpen={false}>
         <ChatInterface />
@@ -16,4 +16,4 @@ const Chat = () => {
   );
 };
 
-export default Chat;
+export default ChatandFriendRequest;

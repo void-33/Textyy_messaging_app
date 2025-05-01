@@ -4,9 +4,10 @@ import Register from "./pages/Register";
 import { AuthProvider } from "./contexts/authContext";
 import PrivateRoutes from "./components/PrivateRoutes";
 import Dashboard from "./pages/Dashboard";
-import Chat from "./pages/Chat";
-import FriendRequest from "./pages/FriendRequest";
+import FriendRequestSidebar from "./pages/FriendRequestSidebar";
 import Settings from "./pages/Settings";
+import ChatandFriendRequest from "./pages/ChatandFriendRequest";
+import { ChatSidebar } from "./components/chats-sidebar";
 
 const App = () => {
   return (
@@ -16,14 +17,13 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Navigate to="/chats" replace />} />
-          <Route element={<Dashboard />}>
-            <Route path="/chats" element={<Chat />} />
-
-            {/* dynamic routing */}
-            <Route path="/chats/:username" element={<Chat />} /> 
-            
-            <Route path="/friendrequest" element={<FriendRequest />} />
-            <Route path="/settings" element={<Settings />} />
+          <Route path="/" element={<Dashboard />}>
+            <Route path="" element={<ChatandFriendRequest />}>
+              <Route path="chats" element={<ChatSidebar />} />
+              <Route path="chats/:username" element={<ChatSidebar />} />
+              <Route path="friendrequest" element={<FriendRequestSidebar />} />
+            </Route>
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Route>
         //?temp route

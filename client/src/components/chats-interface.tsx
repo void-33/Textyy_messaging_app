@@ -8,6 +8,9 @@ import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
 
 export function ChatInterface() {
+  const protectedFetch = useProtectedFetch();
+  const { username } = useParams();
+
   interface Messages {
     _id: string;
     sender: string;
@@ -17,6 +20,12 @@ export function ChatInterface() {
     createdAt: string;
     updatedAt: string;
   }
+  const [messages, setMessages] = useState<Messages[]>([]);
+  const [inputText, setInputText] = useState<string>("");
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const icons = [
     {
       title: "Video Call",
@@ -31,14 +40,6 @@ export function ChatInterface() {
       icon: Search,
     },
   ];
-  const [messages, setMessages] = useState<Messages[]>([]);
-  const [inputText, setInputText] = useState<string>("");
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-
-  const protectedFetch = useProtectedFetch();
-  const { username } = useParams();
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     initSocket();
@@ -85,10 +86,7 @@ export function ChatInterface() {
         }
       };
       fetch();
-    } else {
-      setSelectedUserId("");
-      setMessages([]);
-    }
+    } 
   }, [username]);
 
   useEffect(() => {
@@ -130,27 +128,29 @@ export function ChatInterface() {
                 </div>
               </CardContent>
             </Card>
-            <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col">
+            <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col ">
+
+            <div className="mt-auto"></div>
               {/* Load messages logic here */}
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`my-2 mx-4 flex flex-row ${
-                    message.sender === selectedUserId
-                      ? "justify-start"
-                      : "justify-end"
-                  }`}
-                >
-                  <Card className="w-fit h-fit">
-                    <CardContent>
-                      <p>{message.content}</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              ))}
-              {/* Empty div to scroll to  */}
-              <div ref={messagesEndRef} />
-            </div>
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`my-2 mx-4 flex flex-row ${
+                      message.sender === selectedUserId
+                        ? "justify-start"
+                        : "justify-end"
+                    }`}
+                  >
+                    <Card className="w-fit h-fit">
+                      <CardContent>
+                        <p>{message.content}</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+                {/* Empty div to scroll to  */}
+                <div ref={messagesEndRef} />
+              </div>
             <Card className="w-full mx-0.5 my-1">
               <CardContent>
                 <form
