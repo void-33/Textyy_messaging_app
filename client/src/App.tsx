@@ -4,11 +4,11 @@ import Register from "./pages/Register";
 import { AuthProvider } from "./contexts/authContext";
 import PrivateRoutes from "./components/PrivateRoutes";
 import Dashboard from "./pages/Dashboard";
-import FriendRequestSidebar from "./pages/FriendRequestSidebar";
+import FriendRequestSidebar from "./components/friendRequest-sidebar";
 import Settings from "./pages/Settings";
-import ChatandFriendRequest from "./pages/ChatandFriendRequest";
+import CommonChatInterface from "./pages/CommonChatInterface";
 import { ChatSidebar } from "./components/chats-sidebar";
-import FriendsSidebar from "./pages/FriendsSidebar";
+import FriendsSidebar from "./components/friends-sidebar";
 
 const App = () => {
   return (
@@ -19,7 +19,7 @@ const App = () => {
         <Route element={<PrivateRoutes />}>
           <Route path="/" element={<Navigate to="/chats" replace />} />
           <Route path="/" element={<Dashboard />}>
-            <Route path="" element={<ChatandFriendRequest />}>
+            <Route path="" element={<CommonChatInterface />}>
               <Route path="chats" element={<ChatSidebar />} />
               <Route path="chats/:username" element={<ChatSidebar />} />
               <Route path="friendrequest" element={<FriendRequestSidebar />} />

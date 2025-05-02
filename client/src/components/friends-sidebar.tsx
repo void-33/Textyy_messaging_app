@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useProtectedFetch from "../hooks/useProtectedFetch";
+import { useNavigate } from "react-router-dom";
 
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -13,6 +14,7 @@ const FriendsSidebar = () => {
     username: string;
   }
   const protectedFetch = useProtectedFetch();
+  const navigate = useNavigate();
 
   const [friends, setFriends] = useState<UsersType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -72,6 +74,10 @@ const FriendsSidebar = () => {
     setCancellingReqIds((prev) => prev.filter((id) => id !== reqId));
   };
 
+  const handleUserSelection= (username:string)=>{
+    navigate(`/friends/${username}`);
+  }
+
   return (
     <Card className="grow w-[30vw] my-2 hover:cursor-pointer flex flex-col">
       <CardHeader className="px-3 shrink-0">
@@ -104,7 +110,7 @@ const FriendsSidebar = () => {
               )}
               {friends.map((user) => {
                 return (
-                  <Card key={user._id} className="my-2 mr-2">
+                  <Card key={user._id} className="my-2 mr-2" onClick={()=>handleUserSelection(user.username)}>
                     <CardHeader>
                       <h6 className="text-xs tracking-tight lg:text-sm hover:cursor-pointer">
                         {user.username}
