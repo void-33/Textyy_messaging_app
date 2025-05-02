@@ -39,9 +39,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
     ReceivedFriendRequestType[]
   >([]);
   const [friends, setFriends] = useState<FriendType[]>([]);
-  const [searchResults, setSearchResults] = useState<
-    Array<Record<string, string>>
-  >([]);
+  const [searchResults, setSearchResults] = useState<FriendType[]>([]);
   const [sendingRequestTo, setSendingRequestTo] = useState<Array<string>>([]);
   const [acceptingRequest, setAcceptingRequest] = useState<Array<string>>([]);
   const [decliningRequest, setDecliningRequest] = useState<Array<string>>([]);

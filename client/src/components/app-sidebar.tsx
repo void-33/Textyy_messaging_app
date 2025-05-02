@@ -9,9 +9,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  Contact,
   MessageCircle,
   MoonStarIcon,
-  PhoneCall,
   Settings,
   SunIcon,
   UsersRound,
@@ -25,32 +25,36 @@ import {
 
 import { useState } from "react";
 import { ProfileDropdownMenu } from "./profile-dropdown";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const items = [
   {
     title: "Chats",
-    url: "/chats",
+    url: '/chats',
     icon: MessageCircle,
   },
   {
+    title: "Friends",
+    icon: Contact,
+    url: '/friends',
+  },
+  {
     title: "FriendRequests",
-    url: "/friendrequest",
     icon: UsersRound,
-  },
-  {
-    title: "Call log",
-    url: "#",
-    icon: PhoneCall,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
+    url: '/friendrequest',
   },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const getTargetPath = (base:string)=>{
+    const pathParts = location.pathname.split("/").filter(Boolean);
+    const username = pathParts[1] === 'chats' || 'friends' || 'friendrequest' ? pathParts[1] : null;
+    return username? `/${base}/${username}` : `/${base}`;
+  }
 
   const toggleTheme = () => {
     const html = document.documentElement;
@@ -87,14 +91,26 @@ export function AppSidebar() {
               <SidebarMenuButton
                 asChild
                 className="pr-5 w-[98%] hover:border-1 hover:border-gray-400"
+                onClick={()=>navigate(getTargetPath(item.url.slice(1)))}
               >
-                <Link to={item.url} className="overflow-visible">
+                <div className="overflow-visible">
                   <item.icon />
                   <span>{item.title}</span>
-                </Link>
+                </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="pr-5 w-[98%] hover:border-1 hover:border-gray-400"
+            >
+              <Link to="/settings" className="overflow-visible">
+                <Settings />
+                <span>Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

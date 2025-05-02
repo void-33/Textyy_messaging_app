@@ -8,6 +8,7 @@ import FriendRequestSidebar from "./pages/FriendRequestSidebar";
 import Settings from "./pages/Settings";
 import ChatandFriendRequest from "./pages/ChatandFriendRequest";
 import { ChatSidebar } from "./components/chats-sidebar";
+import FriendsSidebar from "./pages/FriendsSidebar";
 
 const App = () => {
   return (
@@ -23,6 +24,8 @@ const App = () => {
               <Route path="chats/:username" element={<ChatSidebar />} />
               <Route path="friendrequest" element={<FriendRequestSidebar />} />
               <Route path="friendrequest/:username" element={<FriendRequestSidebar />} />
+              <Route path="friends" element={<FriendsSidebar />} />
+              <Route path="friends/:username" element={<FriendsSidebar />} />
             </Route>
             <Route path="settings" element={<Settings />} />
           </Route>

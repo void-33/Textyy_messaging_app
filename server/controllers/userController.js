@@ -57,4 +57,21 @@ const searchUsers = async (req,res) =>{
     }
 }
 
-module.exports = { getIdbyUsername, getFriends, searchUsers };
+
+//endpoint DELETE /api/user/unfriend/:otherUserId
+const unfriendUser = async(req,res)=>{
+    const {otherUserId}=req.params;    
+    if(!otherUserId){
+        return res.status(400).json({ success: false, message: "Missing userId"});
+    }
+    try{
+        await User.findByIdAndUpdate(req.userId, { $pull: { friends: otherUserId } });
+        await User.findByIdAndUpdate(otherUserId, { $pull: { friends: req.userId } });
+
+        return res.status(200).json({ success: true, message: "Unfriended successfully" });
+    }catch(err){
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+}
+
+module.exports = { getIdbyUsername, getFriends, searchUsers , unfriendUser};
