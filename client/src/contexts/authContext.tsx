@@ -6,6 +6,7 @@ import {
 } from "./accessToken";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -28,11 +29,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         withCredentials: true,
       });
       clearAccessToken();
-    } catch (err) {
-        console.error("Logout Error:",err);
-    }finally{
-        clearAccessToken();
-        navigate("/login");
+    } catch (err: any) {
+      const toastId = toast("Logout Error", {
+        description: err?.message,
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
+    } finally {
+      clearAccessToken();
+      navigate("/login");
     }
   };
 

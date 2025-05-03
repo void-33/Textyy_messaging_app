@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 
 interface UserSearchProps {
   searchQuery: string;
@@ -93,7 +94,12 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       toUserId,
     });
     if (res?.data.success) {
-      alert("Friend request sent");
+      const toastId = toast("Friend Request Sent", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendRequestsAndFriends();
     }
     setSendingRequestTo((prev) => prev.filter((id) => id !== toUserId));
@@ -106,7 +112,12 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       "PATCH"
     );
     if (res?.data.success) {
-      alert("Friend request accepted");
+      const toastId = toast("Friend Request Accepted", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendRequestsAndFriends();
     }
     setAcceptingRequest((prev) => prev.filter((id) => id !== requestId));
@@ -119,7 +130,12 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       "DELETE"
     );
     if (res?.data.success) {
-      alert("Friend request declined");
+      const toastId = toast("Friend Request Declined", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendRequestsAndFriends();
     }
     setDecliningRequest((prev) => prev.filter((id) => id !== requestId));
@@ -132,7 +148,12 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       "DELETE"
     );
     if (res?.data.success) {
-      alert("Friend request Canceled");
+      const toastId = toast("Friend Request Canceled", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendRequestsAndFriends();
     }
     setCancelingRequest((prev) => prev.filter((id) => id !== requestId));

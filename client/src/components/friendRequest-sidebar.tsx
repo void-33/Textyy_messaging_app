@@ -2,10 +2,9 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-
 import { useEffect, useState } from "react";
-
 import UserSearch from "@/components/user-search";
+import { toast } from "sonner";
 
 const FriendRequest = () => {
   interface ReceivedFriendRequestType {
@@ -47,7 +46,12 @@ const FriendRequest = () => {
       "PATCH"
     );
     if (res?.data.success) {
-      alert("Friend request accepted");
+      const toastId = toast("Friend Request Accepted", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendReq();
     }
     setAcceptingRequest((prev) => prev.filter((id) => id !== requestId));
@@ -60,7 +64,12 @@ const FriendRequest = () => {
       "DELETE"
     );
     if (res?.data.success) {
-      alert("Friend request declined");
+      const toastId = toast("Friend Request Declined", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       await fetchFriendReq();
     }
     setDecliningRequest((prev) => prev.filter((id) => id !== requestId));

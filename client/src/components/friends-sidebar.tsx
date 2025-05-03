@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
 import UserSearch from "@/components/user-search";
 
 const FriendsSidebar = () => {
@@ -39,7 +39,12 @@ const FriendsSidebar = () => {
     setunfriendingIds((prev)=>[...prev, userId]);
     const res = await protectedFetch(`/api/user/unfriend/${userId}`,'DELETE');
     if(res?.data.success){
-        alert("Unfriended");
+      const toastId = toast("Unfriended", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
         setunfriendedIds((prev)=>[...prev,userId]);
     }
     setunfriendingIds((prev)=>prev.filter((id)=>id!== userId));
@@ -51,7 +56,12 @@ const FriendsSidebar = () => {
       toUserId,
     });
     if (res?.data.success) {
-      alert("Friend request sent");
+      const toastId = toast("Friend Request Sent", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       setSentRequestIds((prev) => [...prev, toUserId]);
       setRequestIdMap({ ...requestIdMap, [toUserId]: res.data.requestId });
     }
@@ -65,7 +75,12 @@ const FriendsSidebar = () => {
       "DELETE"
     );
     if (res?.data.success) {
-      alert("Friend request Canceled");
+      const toastId = toast("Friend Request Canceled", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
       setSentRequestIds((prev) => prev.filter((id) => id !== toUserId));
       const updatedMap = { ...requestIdMap };
       delete updatedMap[toUserId];

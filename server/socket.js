@@ -2,6 +2,7 @@ const Message = require("./models/messageModel");
 const jwt = require("jsonwebtoken");
 const Room = require("./models/roomModel");
 const RoomCard = require("./models/roomCardModel");
+const User = require("./models/userModel");
 
 const users = {};
 
@@ -31,10 +32,14 @@ module.exports = (io) => {
     socket.on("joinPrivateRoom", async (otherUserId) => {
       const roomId = getRoomId(socket.userId, otherUserId);
 
+      // Step 1: Check if they're friends
+      const currentUser = await User.findById(socket.userId);
+      if (!currentUser.friends.includes(otherUserId)) {
+        return;
+      }
       let room = await Room.findOne({
         isGroup: false,
         members: { $all: [socket.userId, otherUserId] },
-        name: roomId,
       });
 
       if (!room) {

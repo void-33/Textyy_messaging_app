@@ -6,17 +6,17 @@ import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { getSocket } from "@/contexts/socket";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
-import {useChatStore} from "@/store/chatStore"
+import { useChatStore } from "@/store/chatStore";
 
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
   const { username } = useParams();
 
-  const {messages, setMessages} = useChatStore();
+  const { messages, setMessages } = useChatStore();
 
   const [inputText, setInputText] = useState<string>("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const icons = [
@@ -37,31 +37,27 @@ export function ChatInterface() {
   useEffect(() => {
     if (username) {
       const fetch = async () => {
-        try {
+        const response = await protectedFetch(
+          `/api/user/getidbyusername/${username}`,
+          "GET"
+        );
+        const userId = response?.data.userId;
+        setSelectedUserId(response?.data.userId);
+
+        const socket = getSocket();
+        if (userId && socket.connected) {
+          socket.emit("joinPrivateRoom", userId);
+        }
+        if (userId) {
           const response = await protectedFetch(
-            `/api/user/getidbyusername/${username}`,
+            `/api/message/get/${userId}`,
             "GET"
           );
-          const userId = response?.data.userId;
-          setSelectedUserId(response?.data.userId);
-
-          const socket = getSocket();
-          if (userId && socket.connected) {
-            socket.emit("joinPrivateRoom", userId);
-          }
-          if (userId) {
-            const response = await protectedFetch(
-              `/api/message/get/${userId}`,
-              "GET"
-            );
-            setMessages(response?.data?.messages);
-          }
-        } catch (err: any) {
-          alert(err.response.data.message || "Some error occured");
+          setMessages(response?.data?.messages);
         }
       };
       fetch();
-    } 
+    }
   }, [username]);
 
   useEffect(() => {
@@ -91,7 +87,9 @@ export function ChatInterface() {
           <CardContent className="pl-1 pr-2">
             <Card className="w-full mx-0.5 my-1">
               <CardContent className="flex justify-between">
-                <h2 className="text-xs tracking-tight lg:text-sm">{username}</h2>
+                <h2 className="text-xs tracking-tight lg:text-sm">
+                  {username}
+                </h2>
                 <div className="flex gap-10">
                   {icons.map((item) => (
                     <item.icon
@@ -104,28 +102,27 @@ export function ChatInterface() {
               </CardContent>
             </Card>
             <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col ">
-
-            <div className="mt-auto"></div>
+              <div className="mt-auto"></div>
               {/* Load messages logic here */}
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`my-2 mx-4 flex flex-row ${
-                      message.sender === selectedUserId
-                        ? "justify-start"
-                        : "justify-end"
-                    }`}
-                  >
-                    <Card className="w-fit h-fit">
-                      <CardContent>
-                        <p>{message.content}</p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-                {/* Empty div to scroll to  */}
-                <div ref={messagesEndRef} />
-              </div>
+              {messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`my-2 mx-4 flex flex-row ${
+                    message.sender === selectedUserId
+                      ? "justify-start"
+                      : "justify-end"
+                  }`}
+                >
+                  <Card className="w-fit h-fit">
+                    <CardContent>
+                      <p>{message.content}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+              {/* Empty div to scroll to  */}
+              <div ref={messagesEndRef} />
+            </div>
             <Card className="w-full mx-0.5 my-1">
               <CardContent>
                 <form

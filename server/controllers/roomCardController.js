@@ -21,7 +21,7 @@ const getUserRoomCards = async (req, res) => {
       .populate("groupId", "_id name")
       .sort({ lastMessageAt: -1 });
 
-    //in the particpants array only include the othrs user's detial
+    //in the particpants array only include the othrs user's detail
     const filteredRoomCards = roomCards.map((roomCard) => {
       if (!roomCard.isGroup) {
         const roomCardObj = roomCard.toObject();

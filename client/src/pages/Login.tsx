@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { setAccessToken } from "../contexts/accessToken";
 import { useAuth } from "../contexts/authContext";
+import { toast } from "sonner";
 
 //interface for credentials state
 interface Credentials {
@@ -89,11 +90,21 @@ const Login: React.FC = () => {
         setIsAuthenticated(true);
         navigate("/chats");
       } else {
-        alert(response.data.message);
+        const toastId = toast(response.data.message, {
+          action: {
+            label: "Close",
+            onClick: () => toast.dismiss(toastId),
+          },
+        });
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        alert(err.response?.data.message);
+        const toastId = toast(err.response?.data.message, {
+          action: {
+            label: "Close",
+            onClick: () => toast.dismiss(toastId),
+          },
+        });
       }
       //? snackbar to show error message
     }

@@ -3,6 +3,7 @@ import textyyLogo from "../assets/textyy.png";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "sonner";
 
 const Register = () => {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -75,11 +76,21 @@ const Register = () => {
       if (response.data.success) {
         navigate("/login");
       } else {
-        alert(response.data.message);
+        const toastId = toast(response.data.message, {
+          action: {
+            label: "Close",
+            onClick: () => toast.dismiss(toastId),
+          },
+        });
       }
     } catch (err) {
       if(axios.isAxiosError(err)){
-        alert(err.response?.data.message);
+        const toastId = toast(err.response?.data.message, {
+          action: {
+            label: "Close",
+            onClick: () => toast.dismiss(toastId),
+          },
+        });
       }
       //? error handling
     }

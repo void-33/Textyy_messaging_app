@@ -1,6 +1,7 @@
 import { useAuth } from "@/contexts/authContext";
 import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
 import axios, { AxiosRequestConfig } from "axios";
+import { toast } from "sonner";
 
 const API_BASE = "http://localhost:3500";
 
@@ -34,9 +35,14 @@ const useProtectedFetch = () => {
       try {
         accessToken = await refreshToken();
       } catch (err) {
-        console.log(
-          "Access token missing and refresh failed.Redirecting to login..."
-        );
+        const toastId = toast("Error", {
+          description:
+            "Access token missing and refresh failed.Redirecting to login...",
+          action: {
+            label: "Close",
+            onClick: () => toast.dismiss(toastId),
+          },
+        });
 
         logout();
       }
@@ -77,15 +83,26 @@ const useProtectedFetch = () => {
 
           return retryResponse;
         } catch (refreshErr) {
-          console.log("Token refresh failed, redirecting to login...");
+          const toastId = toast("Error", {
+            description: "Token refresh failed, redirecting to login...",
+            action: {
+              label: "Close",
+              onClick: () => toast.dismiss(toastId),
+            },
+          });
           //? handle logout
           logout();
           return;
         }
       }
-      
+
       //? handle other errors
-      throw err;
+      const toastId = toast(err.response.data.message || "Some Error occured", {
+        action: {
+          label: "Close",
+          onClick: () => toast.dismiss(toastId),
+        },
+      });
     }
   };
 
