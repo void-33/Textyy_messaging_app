@@ -17,7 +17,7 @@ const Dashboard = () => {
       socket.emit("register");  //? off?
     });
 
-    socket.on("chatMessage", (message:any) => {
+    socket.on("privateMessage", (message:any) => {
       addMessage(message);
     });
 

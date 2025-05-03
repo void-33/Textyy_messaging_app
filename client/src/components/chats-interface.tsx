@@ -47,7 +47,7 @@ export function ChatInterface() {
 
           const socket = getSocket();
           if (userId && socket.connected) {
-            socket.emit("joinRoom", userId);
+            socket.emit("joinPrivateRoom", userId);
           }
           if (userId) {
             const response = await protectedFetch(
@@ -75,7 +75,7 @@ export function ChatInterface() {
     if (inputText.trim()) {
       const socket = getSocket();
       if (selectedUserId) {
-        socket?.emit("chatMessage", selectedUserId, inputText);
+        socket?.emit("privateMessage", selectedUserId, inputText);
         setInputText("");
       }
     }
@@ -91,7 +91,7 @@ export function ChatInterface() {
           <CardContent className="pl-1 pr-2">
             <Card className="w-full mx-0.5 my-1">
               <CardContent className="flex justify-between">
-                <h2 className="text-xs tracking-tight lg:text-sm">UserName</h2>
+                <h2 className="text-xs tracking-tight lg:text-sm">{username}</h2>
                 <div className="flex gap-10">
                   {icons.map((item) => (
                     <item.icon

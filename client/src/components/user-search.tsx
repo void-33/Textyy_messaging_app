@@ -168,7 +168,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       {friendResults.map((user) => (
         <Card
           key={user._id}
-          className="my-2 p-3 flex items-center justify-between"
+          className="my-2 p-3 flex items-center justify-between hover:cursor-pointer"
           onClick={() => handleUserSelection(user.username)}
         >
           <span className="text-sm font-medium">{user.username}</span>
@@ -180,7 +180,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       {nonFriendsResults.map((user) => (
         <Card
           key={user._id}
-          className="my-2 p-3 flex items-center justify-between"
+          className="my-2 p-3 flex items-center justify-between hover:cursor-pointer"
         >
           <span className="text-sm font-medium">{user.username}</span>
           {receivedRequestMap[user._id] && (
