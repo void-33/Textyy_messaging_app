@@ -42,6 +42,16 @@ module.exports = (io) => {
             io.to(roomId).emit('chatMessage', message);
 
         })
+        socket.on('groupMessage', async (groupId, content) => {
+            const roomId = getRoomId(socket.userId, toUserId);
+            const message = await Message.create({
+                sender: socket.userId,
+                receiver: toUserId,
+                content,
+            })
+            io.to(roomId).emit('chatMessage', message);
+
+        })
 
         socket.on('disconnect', () => {
             // console.log(`User disconnected: ${socket.id}`);

@@ -9,16 +9,16 @@ const messageSchema = new mongoose.Schema({
     receiver: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
-        required: true,
+        default: null,
     },
     content: {
         type: String,
         required: true,
     },
-    read: {
-        type: Boolean,
-        default: false,
-    },
+    groupId: {
+        type: mongoose.Types.ObjectId,
+        default: null
+    }
 }, { timestamps: true })
 
 module.exports = mongoose.model('message', messageSchema);

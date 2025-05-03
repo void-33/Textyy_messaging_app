@@ -3,24 +3,17 @@ import { Video, Phone, Search, SendIcon, Settings } from "lucide-react";
 import { ChatsInfoButton } from "@/components/customSidebarTriggers";
 import { Input } from "./ui/input";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { disconnectSocket, getSocket, initSocket } from "@/contexts/socket";
+import { getSocket } from "@/contexts/socket";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
+import {useChatStore} from "@/store/chatStore"
 
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
   const { username } = useParams();
 
-  interface Messages {
-    _id: string;
-    sender: string;
-    receiver: string;
-    content: string;
-    read: boolean;
-    createdAt: string;
-    updatedAt: string;
-  }
-  const [messages, setMessages] = useState<Messages[]>([]);
+  const {messages, setMessages} = useChatStore();
+
   const [inputText, setInputText] = useState<string>("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   
@@ -40,24 +33,6 @@ export function ChatInterface() {
       icon: Search,
     },
   ];
-
-  useEffect(() => {
-    initSocket();
-    const socket = getSocket();
-
-    socket.on("connect", () => {
-      socket.emit("register");
-    });
-
-    socket.on("chatMessage", async (message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    //?maybe not needed
-    return () => {
-      disconnectSocket();
-    };
-  }, []);
 
   useEffect(() => {
     if (username) {
