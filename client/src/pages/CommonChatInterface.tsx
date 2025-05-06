@@ -8,7 +8,14 @@ const CommonChatInterface = () => {
     <>
       <Outlet />
 
-      <SidebarProvider defaultOpen={false}>
+      <SidebarProvider
+        defaultOpen={false}
+        style={
+          {
+            "--sidebar-width": "22rem",
+          } as React.CSSProperties as React.CSSProperties & Record<string, any>
+        }
+      >
         <ChatInterface />
         <ChatSettings />
       </SidebarProvider>

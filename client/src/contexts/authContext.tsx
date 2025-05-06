@@ -15,7 +15,7 @@ interface AuthContextType {
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   login: () => void;
   logout: () => void;
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
 }
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const checkAuth = async () => {
+  const checkAuth = async ():Promise<void> => {
     try {
       //this is redundant when token is saved in memory like here but useful when token in saved in localstorage
       const token = getAccessToken();

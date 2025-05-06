@@ -7,32 +7,40 @@ import useSocketStore from "@/stores/socketStore";
 import { useChatStore } from "@/stores/chatStore";
 
 const Dashboard = () => {
-  const {addMessage} = useChatStore((state)=>state);
-  
-  const getSocket = useSocketStore((state)=>state.getSocket);
-  const initSocket = useSocketStore((state)=>state.initSocket);
-  const disconnectSocket = useSocketStore((state)=>state.disconnectSocket);
+  const { addMessage } = useChatStore((state) => state);
 
-  useEffect(()=>{
+  const getSocket = useSocketStore((state) => state.getSocket);
+  const initSocket = useSocketStore((state) => state.initSocket);
+  const disconnectSocket = useSocketStore((state) => state.disconnectSocket);
+
+  useEffect(() => {
     initSocket();
     const socket = getSocket();
 
     socket.on("connect", () => {
-      socket.emit("register");  //? off?
+      socket.emit("register"); //? off?
     });
 
-    socket.on("privateMessage", (message:any) => {
+    socket.on("privateMessage", (message: any) => {
       addMessage(message);
     });
 
     return () => {
       disconnectSocket();
     };
-  },[])
+  }, []);
 
   return (
     <div className="flex h-[100vh]">
-      <SidebarProvider defaultOpen={false} className="w-fit">
+      <SidebarProvider
+        defaultOpen={false}
+        className="w-fit"
+        style={
+          {
+            "--sidebar-width": "12rem",
+          } as React.CSSProperties as React.CSSProperties & Record<string, any>
+        }
+      >
         <AppSidebar />
       </SidebarProvider>
 
