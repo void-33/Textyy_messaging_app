@@ -3,16 +3,17 @@ import { Video, Phone, Search, SendIcon, Settings } from "lucide-react";
 import { ChatsInfoButton } from "@/components/customSidebarTriggers";
 import { Input } from "./ui/input";
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { getSocket } from "@/contexts/socket";
+import useSocketStore from "@/stores/socketStore";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
-import { useChatStore } from "@/store/chatStore";
+import { useChatStore } from "@/stores/chatStore";
 
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
   const { username } = useParams();
 
   const { messages, setMessages } = useChatStore();
+  const getSocket = useSocketStore((state)=>state.getSocket);
 
   const [inputText, setInputText] = useState<string>("");
   const [selectedUserId, setSelectedUserId] = useState<string>("");

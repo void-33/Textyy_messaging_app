@@ -5,7 +5,7 @@ import clsx from "clsx";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useChatStore } from "@/store/chatStore";
+import { useChatStore } from "@/stores/chatStore";
 import UserSearch from "./user-search";
 import { CirclePlus, Delete } from "lucide-react";
 

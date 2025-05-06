@@ -3,7 +3,8 @@ import textyyLogo from "../assets/textyy.png";
 import owl from "../assets/owl.png";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { setAccessToken } from "../contexts/accessToken";
+// import { setAccessToken } from "../contexts/accessToken";
+import useAccessTokenStore from "@/stores/accessTokenStore";
 import { useAuth } from "../contexts/authContext";
 import { toast } from "sonner";
 
@@ -15,6 +16,8 @@ interface Credentials {
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { setIsAuthenticated } = useAuth();
+
+  const setAccessToken = useAccessTokenStore((state)=>state.setAccessToken);
 
   //state for credentials
   const [creds, setCreds] = useState<Credentials>({ emailUsername: "", password: "" });

@@ -1,9 +1,11 @@
 import { createContext, ReactNode, useContext, useState } from "react";
-import {
-  getAccessToken,
-  setAccessToken,
-  clearAccessToken,
-} from "./accessToken";
+// import {
+//   getAccessToken,
+//   setAccessToken,
+//   clearAccessToken,
+// } from "./accessToken";
+
+import useAccessTokenStore from "../stores/accessTokenStore";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -18,6 +20,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const getAccessToken = useAccessTokenStore((state) => state.getAccessToken);
+  const setAccessToken = useAccessTokenStore((state) => state.setAccessToken);
+  const clearAccessToken = useAccessTokenStore(
+    (state) => state.clearAccessToken
+  );
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 

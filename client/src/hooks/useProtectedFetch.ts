@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/authContext";
-import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
+// import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
+import useAccessTokenStore from "@/stores/accessTokenStore";
 import axios, { AxiosRequestConfig } from "axios";
 import { toast } from "sonner";
 
@@ -7,6 +8,9 @@ const API_BASE = "http://localhost:3500";
 
 const useProtectedFetch = () => {
   const { logout } = useAuth();
+
+  const getAccessToken = useAccessTokenStore((state)=>state.getAccessToken)
+  const setAccessToken = useAccessTokenStore((state)=>state.setAccessToken)
 
   const refreshToken = async () => {
     try {

@@ -3,11 +3,15 @@ import { AppSidebar } from "@/components/app-sidebar";
 
 import { Outlet } from "react-router-dom";
 import { useEffect } from "react";
-import { getSocket, initSocket, disconnectSocket } from "@/contexts/socket";
-import { useChatStore } from "@/store/chatStore";
+import useSocketStore from "@/stores/socketStore";
+import { useChatStore } from "@/stores/chatStore";
 
 const Dashboard = () => {
   const {addMessage} = useChatStore((state)=>state);
+  
+  const getSocket = useSocketStore((state)=>state.getSocket);
+  const initSocket = useSocketStore((state)=>state.initSocket);
+  const disconnectSocket = useSocketStore((state)=>state.disconnectSocket);
 
   useEffect(()=>{
     initSocket();

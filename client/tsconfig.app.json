@@ -28,5 +28,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/contexts/accessToken.ts", "src/contexts/socket.ts"]
+  "include": ["src", "src/stores/accessTokenStore.ts", "src/stores/socketStore.ts"]
 }
