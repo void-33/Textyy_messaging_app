@@ -2,19 +2,17 @@ const mongoose = require("mongoose");
 
 const roomCardShema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      default: '',
-    },
     isGroup: {
       type: Boolean,
       default: false,
     },
+    //identifier for group
     groupId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "room",
       default: null,
     },
+    //identifier for dms
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,

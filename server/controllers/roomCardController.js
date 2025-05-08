@@ -21,10 +21,25 @@ const getUserRoomCards = async (req, res) => {
       .populate("groupId", "_id name")
       .sort({ lastMessageAt: -1 });
 
+    //provide name for each room card- dm- ohther user's username , grp- grpname
+    const namedRoomCards = roomCards.map((roomCard) => {
+      const roomCardObj = roomCard.toObject();
+      if (roomCardObj.isGroup) {
+        roomCardObj.name = roomCard.groupId?.name || "Unknown Group";
+      } else {
+        const otherUser = roomCardObj.participants.find(
+          (participant) => participant._id.toString() !== userId
+        );
+        roomCardObj.name = otherUser ? otherUser.username : "Unknown User";
+      }
+      return roomCardObj;
+    });
+
     //in the particpants array only include the othrs user's detail
-    const filteredRoomCards = roomCards.map((roomCard) => {
+    const filteredRoomCards = namedRoomCards.map((roomCard) => {
       if (!roomCard.isGroup) {
-        const roomCardObj = roomCard.toObject();
+        // const roomCardObj = roomCard.toObject();
+        const roomCardObj = roomCard;
 
         const otherUser = roomCardObj.participants.find(
           (participant) => participant._id.toString() !== userId

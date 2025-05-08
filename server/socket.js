@@ -53,8 +53,32 @@ module.exports = (io) => {
       socket.join(roomId);
     });
 
-    socket.on("joinGroup", (groupId) => {
-      socket.join(groupId);
+    socket.on("joinGroup", async (group) => {
+      let room = await Room.findOne({
+        isGroup: true,
+        members: { $in: [socket.userId] },
+      });
+
+      const members = [
+        ...group.members,
+        { _id: socket.userId, username: socket.username },
+      ];
+
+      if (!room) {
+        room = await Room.create({
+          name: group.name,
+          isGroup: true,
+          members,
+          creator: socket.userId,
+          admin: [socket.userId],
+        });
+        await RoomCard.create({
+          isGroup:true,
+          groupId: room._id
+        })
+      }
+
+      socket.join(room._id);
     });
 
     socket.on("privateMessage", async (toUserId, content) => {

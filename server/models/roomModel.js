@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const roomSchema = new mongoose.Schema(
   {
+    //identifier for both grp and dms
     name: {
       type: String,
       required: [true,'Room name is required'],
@@ -10,15 +11,18 @@ const roomSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    //at least 1 for grp and exactly 2 for dms
     members: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user',
     }],
+    //1 for a grp
     creator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
         default: null
     },
+    //all memebers in a grp can be grp
     admin: [
       {
         type: mongoose.Schema.Types.ObjectId,

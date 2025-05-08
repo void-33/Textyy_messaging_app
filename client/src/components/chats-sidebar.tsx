@@ -8,27 +8,45 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import UserSearch from "./user-search";
 import { CirclePlus, Delete } from "lucide-react";
+import GroupInit from "./chat-settings/groupInit";
+import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+
+import useSocketStore from "@/stores/socketStore";
+
+interface UserType {
+  _id: string;
+  username: string;
+}
+interface RoomType {
+  _id: string;
+  name: string;
+}
+
+type DMRoomCardType = {
+  _id: string;
+  name: string;
+  isGroup: false;
+  otherUser: UserType;
+  lastMessage: string;
+  lastMessageAt: Date;
+};
+type GroupRoomCardType = {
+  _id: string;
+  name: string;
+  isGroup: true;
+  groupId: RoomType;
+  lastMessage: string;
+  lastMessageAt: Date;
+};
+
+type RoomCardType = DMRoomCardType | GroupRoomCardType;
 
 export function ChatSidebar() {
   const protectedFetch = useProtectedFetch();
+  const getSocket = useSocketStore((state) => state.getSocket);
   const { messages } = useChatStore();
   const navigate = useNavigate();
   const { username } = useParams();
-
-  interface UserType {
-    _id: string;
-    username: string;
-  }
-
-  interface RoomCardType {
-    _id: string;
-    name: string;
-    isGroup: boolean;
-    groupId: string | null;
-    otherUser: UserType;
-    lastMessage: string;
-    lastMessageAt: Date;
-  }
 
   const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -39,39 +57,36 @@ export function ChatSidebar() {
         "/api/roomcards/getroomcards",
         "GET"
       );
-      const newCards = response?.data.roomCards || [];
+      const newCards: RoomCardType[] = response?.data.roomCards || [];
       setRoomCards((prevRoomCards) => {
-        //create map of new cards by username for quick access
-        const newCardsMap = new Map(
-          newCards.map((card: any) => [card.otherUser.username, card])
+        //create map of new cards by name for quick access
+        const newCardsMap: Map<string, RoomCardType> = new Map(
+          newCards.map((card: RoomCardType) => [card.name, card])
         );
 
-        //replace temp cards with real ones only if username matches
-        const updatedCards = prevRoomCards.map((card: any) => {
-          if (
-            newCardsMap.has(card.otherUser.username)
-          ) {
-            return newCardsMap.get(card.otherUser.username);
+        //replace prev cards with real ones only if name matches
+        const prevUpdatedCards: RoomCardType[] = prevRoomCards.map(
+          (card: RoomCardType) => {
+            return newCardsMap.get(card.name) ?? card;
           }
-          return card;
-        });
+        );
 
-        // 3. Add any new cards that didn't exist before
-        const existingUsernames = new Set(
-          updatedCards.map((card) => card.otherUser.username)
+        // Add any new cards that didn't exist before
+        const existingNames = new Set(
+          prevUpdatedCards.map((card: RoomCardType) => card.name)
         );
         const additionalNewCards = newCards.filter(
-          (card: any) => !existingUsernames.has(card.otherUser.username)
+          (card: RoomCardType) => !existingNames.has(card.name)
         );
 
-        const combined = [...updatedCards, ...additionalNewCards];
+        const combined = [...prevUpdatedCards, ...additionalNewCards];
 
         // Separate dummy and real cards
-        const dummyCards = combined.filter(
-          (card) => card.otherUser._id === "dummy_id"
+        const dummyCards = combined.filter((card: RoomCardType) =>
+          card._id.startsWith("dummy")
         );
         const realCards = combined
-          .filter((card) => card.otherUser._id !== "dummy_id")
+          .filter((card: RoomCardType) => !card._id.startsWith("dummy"))
           .sort(
             (a, b) =>
               new Date(b.lastMessageAt).getTime() -
@@ -86,23 +101,18 @@ export function ChatSidebar() {
 
   useEffect(() => {
     if (username) {
-      const roomCardExists = roomCards.some(
-        (card) => card.otherUser.username === username
-      );
+      const roomCardExists = roomCards.some((card) => card.name === username);
       if (!roomCardExists) {
         const newRoomCard: RoomCardType = {
-          _id: `${username}-${Date.now()}`,
+          _id: `dummy-${Date.now()}`,
           name: username,
           isGroup: false,
-          groupId: null,
           otherUser: { _id: "dummy_id", username },
           lastMessage: "",
           lastMessageAt: new Date(),
         };
         setRoomCards((prevRoomCards) => {
-          const exists = prevRoomCards.some(
-            (c) => c.otherUser.username === newRoomCard.otherUser.username
-          );
+          const exists = prevRoomCards.some((c) => c.name === newRoomCard.name);
           if (exists) return prevRoomCards;
           return [newRoomCard, ...prevRoomCards];
         });
@@ -110,14 +120,31 @@ export function ChatSidebar() {
     }
   }, [username, roomCards]);
 
-  const handleUserSelection = (otherUser: UserType) => {
-    navigate(`/chats/${otherUser.username}`);
+  const handleCardSelection = (card: RoomCardType) => {
+    // if (!card.isGroup) navigate(`/chats/${card.otherUser.username}`);
+    // else navigate(`/chats/${card.name}`);
+    navigate(`/chats/${card.name}`);
   };
 
-  const newGroupCreation = () => {};
+  const newGroupCreation = (name: string, members: UserType[]) => {
+    const group = { name, members };
+    const socket = getSocket();
+    socket.emit("joinGroup", group);
 
-  const isSelectedCard = (cardUsername: string) => {
-    return cardUsername === username;
+    const newRoomCard: RoomCardType = {
+      _id: `${"dummy"}-${Date.now()}`,
+      name,
+      isGroup: true,
+      groupId: { _id: "dummy_id", name },
+      lastMessage: "",
+      lastMessageAt: new Date(),
+    };
+    setRoomCards((prevRoomCards) => [newRoomCard, ...prevRoomCards]);
+    navigate(`/chats/${name}`);
+  };
+
+  const isSelectedCard = (card: RoomCardType) => {
+    return card.name === username;
   };
 
   return (
@@ -127,10 +154,12 @@ export function ChatSidebar() {
           <h1 className="scroll-m-20 text-xl font-bold tracking-tight lg:text-2xl">
             Chats
           </h1>
-          <CirclePlus
-            className="hover:cursor-pointer"
-            onClick={newGroupCreation}
-          />
+          <Dialog>
+            <DialogTrigger>
+              <CirclePlus className="hover:cursor-pointer" />
+            </DialogTrigger>
+            <GroupInit handleOnSubmit={newGroupCreation} />
+          </Dialog>
         </CardTitle>
         <div className="flex flex-row justify-between gap-2 items-center">
           <Input
@@ -161,14 +190,13 @@ export function ChatSidebar() {
                     key={item._id}
                     className={clsx(
                       "m-2 hover:cursor-pointer",
-                      isSelectedCard(item.otherUser.username) &&
-                        "border border-primary"
+                      isSelectedCard(item) && "border border-primary"
                     )}
-                    onClick={() => handleUserSelection(item.otherUser)}
+                    onClick={() => handleCardSelection(item)}
                   >
                     <CardHeader>
                       <h6 className="text-xs tracking-tight lg:text-sm">
-                        {item.otherUser.username}
+                        {item.name}
                       </h6>
                     </CardHeader>
                     <CardContent>

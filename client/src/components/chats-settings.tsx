@@ -13,7 +13,7 @@ import {
 
 import { useParams } from "react-router-dom";
 import { useState } from "react";
-import AddGroupMembers from "./chat-settings/addGroupMembers";
+import AddGroupMembers from "./chat-settings/groupInit";
 import RenameGroup from "./chat-settings/renameGroup";
 
 export function ChatSettings() {
