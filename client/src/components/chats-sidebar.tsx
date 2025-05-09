@@ -61,46 +61,14 @@ export function ChatSidebar() {
         "GET"
       );
       const newCards: RoomCardType[] = response?.data.roomCards || [];
+
       setRoomCards((prevRoomCards) => {
-        const updatedCards = prevRoomCards.map((card) => {
-          // Check if the room already exists in prevRoomCards and update it
-          const newCard = newCards.find((newCard) => newCard.roomId._id === card.roomId._id);
-          if (newCard) {
-            return {
-              ...card,
-              ...newCard, // Merge new data (like `lastMessage`, `lastMessageAt`, etc.)
-            };
-          }
-          return card;
-        });
-      
-        // Add new cards that don't exist in prevRoomCards
-        const newUniqueCards = newCards.filter(
-          (newCard) => !prevRoomCards.some((card) => card.roomId._id === newCard.roomId._id)
+        const tempCards = prevRoomCards.filter(
+          (card) => card.lastMessage === ""
         );
-      
-        // Merge updated cards with new unique cards
-        const beforeSorted = [...updatedCards, ...newUniqueCards];
-      
-        // Sort the room cards based on lastMessageAt and prioritize empty lastMessage
-        const sortedCards = beforeSorted.sort((a, b) => {
-          // If lastMessage is empty, put it first
-          if (a.lastMessage === '' && b.lastMessage !== '') return -1;
-          if (a.lastMessage !== '' && b.lastMessage === '') return 1;
-      
-          // Otherwise, compare by lastMessageAt (descending order)
-          const timeA = new Date(a.lastMessageAt).getTime();
-          const timeB = new Date(b.lastMessageAt).getTime();
-          return timeB - timeA; // Descending order, most recent lastMessageAt first
-        });
-      
-        return sortedCards;
-        //finally sortedcards contains:
-        //1 cards that are selected new (lastmessage = '')
-        //2 other all cards sorted by lastMessageAt 
-        //3 everytime a new message comes, that card gets moved at top(after the lastMessage='' card)
+        return [...tempCards, ...newCards];
       });
-      
+
       joinRooms(newCards);
     };
 
@@ -112,7 +80,7 @@ export function ChatSidebar() {
     };
 
     fetchRoomCards();
-  }, [getSocket,messagesByRoom]);
+  }, [getSocket, messagesByRoom]);
 
   useEffect(() => {
     if (!roomId) return;

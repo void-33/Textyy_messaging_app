@@ -26,6 +26,7 @@ const Dashboard = () => {
     });
 
     return () => {
+      socket.off('message');
       disconnectSocket();
     };
   }, []);
