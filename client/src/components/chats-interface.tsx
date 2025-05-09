@@ -7,72 +7,103 @@ import useSocketStore from "@/stores/socketStore";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
+import useCurrUserState from "@/stores/currUserStore";
 
+type UserType = {
+  _id: string;
+  username: string;
+};
+
+type PrivateRoomType = {
+  _id: string;
+  name: string;
+  members: UserType[];
+  isGroup: false;
+  otherUser: UserType;
+};
+type GroupRoomType = {
+  _id: string;
+  name: string;
+  members: UserType[];
+  isGroup: true;
+};
+
+type RoomType = PrivateRoomType | GroupRoomType;
+
+interface Message {
+  _id: string;
+  sender: string;
+  roomId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const icons = [
+  {
+    title: "Video Call",
+    icon: Video,
+  },
+  {
+    title: "Audio Call",
+    icon: Phone,
+  },
+  {
+    title: "Search chat",
+    icon: Search,
+  },
+];
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
-  const { username } = useParams();
+  const { roomId } = useParams();
 
-  const { messages, setMessages } = useChatStore();
-  const getSocket = useSocketStore((state)=>state.getSocket);
+  const setMessages = useChatStore((state) => state.setMessages);
+  const messagesByRoom = useChatStore((state) => state.messagesByRoom);
+  const getSocket = useSocketStore((state) => state.getSocket);
+  const currUserId = useCurrUserState((state) => state.userId);
 
   const [inputText, setInputText] = useState<string>("");
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
+  const [selectedRoom, setSelectedRoom] = useState<RoomType>();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const icons = [
-    {
-      title: "Video Call",
-      icon: Video,
-    },
-    {
-      title: "Audio Call",
-      icon: Phone,
-    },
-    {
-      title: "Search chat",
-      icon: Search,
-    },
-  ];
+  const roomMessages = messagesByRoom[roomId ?? ""] ?? [];
+  const messageCount = roomMessages.length;
 
   useEffect(() => {
-    if (username) {
+    if (roomId) {
       const fetch = async () => {
         const response = await protectedFetch(
-          `/api/user/getidbyusername/${username}`,
+          `/api/rooms/getbyid/${roomId}`,
           "GET"
         );
-        const userId = response?.data.userId;
-        setSelectedUserId(response?.data.userId);
+        const roomObj: RoomType = response?.data.roomObj;
+        setSelectedRoom(roomObj);
 
-        const socket = getSocket();
-        if (userId && socket.connected) {
-          socket.emit("joinPrivateRoom", userId);
-        }
-        if (userId) {
-          const response = await protectedFetch(
-            `/api/message/get/${userId}`,
-            "GET"
-          );
-          setMessages(response?.data?.messages);
-        }
+        if (messageCount) return;
+
+        const res = await protectedFetch(
+          `/api/messages/get/${roomObj._id}`,
+          "GET"
+        );
+        setMessages(roomId, res?.data?.messages);
       };
       fetch();
     }
-  }, [username]);
+  }, [roomId]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && messageCount) {
       messagesEndRef.current.scrollIntoView();
     }
-  }, [messages]);
+  }, [roomId, messageCount]);
 
   const handleSendMessage = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (inputText.trim()) {
       const socket = getSocket();
-      if (selectedUserId) {
-        socket?.emit("privateMessage", selectedUserId, inputText);
+      if (selectedRoom?._id) {
+        socket?.emit("message", selectedRoom._id, inputText);
         setInputText("");
       }
     }
@@ -83,13 +114,13 @@ export function ChatInterface() {
   };
   return (
     <>
-      {selectedUserId && (
+      {selectedRoom?._id && (
         <Card className="w-full my-2 ml-2 mr-0 p-1">
           <CardContent className="pl-1 pr-2">
             <Card className="w-full mx-0.5 my-1">
               <CardContent className="flex justify-between">
                 <h2 className="text-xs tracking-tight lg:text-sm">
-                  {username}
+                  {selectedRoom.name}
                 </h2>
                 <div className="flex gap-10">
                   {icons.map((item) => (
@@ -105,13 +136,13 @@ export function ChatInterface() {
             <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col ">
               <div className="mt-auto"></div>
               {/* Load messages logic here */}
-              {messages.map((message, index) => (
+              {roomMessages.map((message: Message) => (
                 <div
-                  key={index}
+                  key={message._id}
                   className={`my-2 mx-4 flex flex-row ${
-                    message.sender === selectedUserId
-                      ? "justify-start"
-                      : "justify-end"
+                    message.sender === currUserId
+                      ? "justify-end"
+                      : "justify-start"
                   }`}
                 >
                   <Card className="w-fit h-fit">
@@ -147,7 +178,7 @@ export function ChatInterface() {
         </Card>
       )}
 
-      {!selectedUserId && (
+      {!selectedRoom?._id && (
         <Card className="w-full my-2 ml-2 mr-0 p-1 flex justify-center">
           <CardContent className="flex h-[40%] flex-col items-center">
             <Settings size={150} strokeWidth={0.75} className="inline-block" />

@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const roomSchema = new mongoose.Schema(
   {
     //identifier for both grp and dms
+    //grp-grpname
+    //dm - userId1_userId2
     name: {
       type: String,
       required: [true,'Room name is required'],
@@ -11,7 +13,7 @@ const roomSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    //at least 1 for grp and exactly 2 for dms
+    //at least 2 for grp and exactly 2 for dms
     members: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user',

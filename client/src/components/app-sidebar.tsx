@@ -52,8 +52,8 @@ export function AppSidebar() {
 
   const getTargetPath = (base:string)=>{
     const pathParts = location.pathname.split("/").filter(Boolean);
-    const username = pathParts[1] === 'chats' || 'friends' || 'friendrequest' ? pathParts[1] : null;
-    return username? `/${base}/${username}` : `/${base}`;
+    const roomId = pathParts[1] === 'chats' || 'friends' || 'friendrequest' ? pathParts[1] : null;
+    return roomId? `/${base}/${roomId}` : `/${base}`;
   }
 
   const toggleTheme = () => {

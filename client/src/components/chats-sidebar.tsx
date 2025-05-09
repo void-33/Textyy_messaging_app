@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import clsx from "clsx";
 
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import UserSearch from "./user-search";
 import { CirclePlus, Delete } from "lucide-react";
 import GroupInit from "./chat-settings/groupInit";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { Dialog, DialogTrigger } from "./ui/dialog";
 
 import useSocketStore from "@/stores/socketStore";
 
@@ -26,6 +26,7 @@ type DMRoomCardType = {
   _id: string;
   name: string;
   isGroup: false;
+  roomId: RoomType;
   otherUser: UserType;
   lastMessage: string;
   lastMessageAt: Date;
@@ -34,7 +35,7 @@ type GroupRoomCardType = {
   _id: string;
   name: string;
   isGroup: true;
-  groupId: RoomType;
+  roomId: RoomType;
   lastMessage: string;
   lastMessageAt: Date;
 };
@@ -44,12 +45,14 @@ type RoomCardType = DMRoomCardType | GroupRoomCardType;
 export function ChatSidebar() {
   const protectedFetch = useProtectedFetch();
   const getSocket = useSocketStore((state) => state.getSocket);
-  const { messages } = useChatStore();
+  const messagesByRoom = useChatStore((state) => state.messagesByRoom);
   const navigate = useNavigate();
-  const { username } = useParams();
+  const { roomId } = useParams();
 
   const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const fetchedRoomIds = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchRoomCards = async () => {
@@ -59,92 +62,114 @@ export function ChatSidebar() {
       );
       const newCards: RoomCardType[] = response?.data.roomCards || [];
       setRoomCards((prevRoomCards) => {
-        //create map of new cards by name for quick access
-        const newCardsMap: Map<string, RoomCardType> = new Map(
-          newCards.map((card: RoomCardType) => [card.name, card])
-        );
-
-        //replace prev cards with real ones only if name matches
-        const prevUpdatedCards: RoomCardType[] = prevRoomCards.map(
-          (card: RoomCardType) => {
-            return newCardsMap.get(card.name) ?? card;
+        const updatedCards = prevRoomCards.map((card) => {
+          // Check if the room already exists in prevRoomCards and update it
+          const newCard = newCards.find((newCard) => newCard.roomId._id === card.roomId._id);
+          if (newCard) {
+            return {
+              ...card,
+              ...newCard, // Merge new data (like `lastMessage`, `lastMessageAt`, etc.)
+            };
           }
+          return card;
+        });
+      
+        // Add new cards that don't exist in prevRoomCards
+        const newUniqueCards = newCards.filter(
+          (newCard) => !prevRoomCards.some((card) => card.roomId._id === newCard.roomId._id)
         );
+      
+        // Merge updated cards with new unique cards
+        const beforeSorted = [...updatedCards, ...newUniqueCards];
+      
+        // Sort the room cards based on lastMessageAt and prioritize empty lastMessage
+        const sortedCards = beforeSorted.sort((a, b) => {
+          // If lastMessage is empty, put it first
+          if (a.lastMessage === '' && b.lastMessage !== '') return -1;
+          if (a.lastMessage !== '' && b.lastMessage === '') return 1;
+      
+          // Otherwise, compare by lastMessageAt (descending order)
+          const timeA = new Date(a.lastMessageAt).getTime();
+          const timeB = new Date(b.lastMessageAt).getTime();
+          return timeB - timeA; // Descending order, most recent lastMessageAt first
+        });
+      
+        return sortedCards;
+        //finally sortedcards contains:
+        //1 cards that are selected new (lastmessage = '')
+        //2 other all cards sorted by lastMessageAt 
+        //3 everytime a new message comes, that card gets moved at top(after the lastMessage='' card)
+      });
+      
+      joinRooms(newCards);
+    };
 
-        // Add any new cards that didn't exist before
-        const existingNames = new Set(
-          prevUpdatedCards.map((card: RoomCardType) => card.name)
-        );
-        const additionalNewCards = newCards.filter(
-          (card: RoomCardType) => !existingNames.has(card.name)
-        );
-
-        const combined = [...prevUpdatedCards, ...additionalNewCards];
-
-        // Separate dummy and real cards
-        const dummyCards = combined.filter((card: RoomCardType) =>
-          card._id.startsWith("dummy")
-        );
-        const realCards = combined
-          .filter((card: RoomCardType) => !card._id.startsWith("dummy"))
-          .sort(
-            (a, b) =>
-              new Date(b.lastMessageAt).getTime() -
-              new Date(a.lastMessageAt).getTime()
-          );
-
-        return [...dummyCards, ...realCards];
+    const joinRooms = (roomcard: RoomCardType[]) => {
+      const socket = getSocket();
+      roomcard.forEach((card) => {
+        socket.emit("joinRoom", card.roomId._id);
       });
     };
+
     fetchRoomCards();
-  }, [messages]);
+  }, [getSocket,messagesByRoom]);
 
   useEffect(() => {
-    if (username) {
-      const roomCardExists = roomCards.some((card) => card.name === username);
-      if (!roomCardExists) {
-        const newRoomCard: RoomCardType = {
-          _id: `dummy-${Date.now()}`,
-          name: username,
-          isGroup: false,
-          otherUser: { _id: "dummy_id", username },
-          lastMessage: "",
-          lastMessageAt: new Date(),
-        };
-        setRoomCards((prevRoomCards) => {
-          const exists = prevRoomCards.some((c) => c.name === newRoomCard.name);
-          if (exists) return prevRoomCards;
-          return [newRoomCard, ...prevRoomCards];
-        });
-      }
+    if (!roomId) return;
+
+    const roomCardExists = roomCards.some((card) => card.roomId._id === roomId);
+
+    if (!roomCardExists && !fetchedRoomIds.current.has(roomId)) {
+      const fetchRoomcardbyId = async () => {
+        const response = await protectedFetch(
+          `/api/roomcards/getbyid/${roomId}`,
+          "GET"
+        );
+        if (response?.data.success) {
+          const newRoomCard = response.data.roomCardObj;
+
+          setRoomCards((prevRoomCards) => {
+            const exists = prevRoomCards.some(
+              (c) => c.roomId._id === newRoomCard.roomId._id
+            );
+            if (exists) return prevRoomCards;
+            return [newRoomCard, ...prevRoomCards];
+          });
+          fetchedRoomIds.current.add(roomId); // ✅ move inside success
+        } else {
+          navigate("/chats");
+        }
+      };
+      fetchRoomcardbyId();
     }
-  }, [username, roomCards]);
+  }, [roomId, roomCards]);
 
   const handleCardSelection = (card: RoomCardType) => {
     // if (!card.isGroup) navigate(`/chats/${card.otherUser.username}`);
     // else navigate(`/chats/${card.name}`);
-    navigate(`/chats/${card.name}`);
+    navigate(`/chats/${card.roomId._id}`);
   };
 
   const newGroupCreation = (name: string, members: UserType[]) => {
-    const group = { name, members };
-    const socket = getSocket();
-    socket.emit("joinGroup", group);
+    console.log(name, members);
+    // const group = { name, members };
+    // const socket = getSocket();
+    // socket.emit("joinGroup", group);
 
-    const newRoomCard: RoomCardType = {
-      _id: `${"dummy"}-${Date.now()}`,
-      name,
-      isGroup: true,
-      groupId: { _id: "dummy_id", name },
-      lastMessage: "",
-      lastMessageAt: new Date(),
-    };
-    setRoomCards((prevRoomCards) => [newRoomCard, ...prevRoomCards]);
-    navigate(`/chats/${name}`);
+    // const newRoomCard: RoomCardType = {
+    //   _id: `${"dummy"}-${Date.now()}`,
+    //   name,
+    //   isGroup: true,
+    //   groupId: { _id: "dummy_id", name },
+    //   lastMessage: "",
+    //   lastMessageAt: new Date(),
+    // };
+    // setRoomCards((prevRoomCards) => [newRoomCard, ...prevRoomCards]);
+    // navigate(`/chats/${name}`);
   };
 
   const isSelectedCard = (card: RoomCardType) => {
-    return card.name === username;
+    return card.roomId._id === roomId;
   };
 
   return (

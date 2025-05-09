@@ -21,8 +21,8 @@ const Dashboard = () => {
       socket.emit("register"); //? off?
     });
 
-    socket.on("privateMessage", (message: any) => {
-      addMessage(message);
+    socket.on("message", (roomId:string,message: any) => {
+      addMessage(roomId,message);
     });
 
     return () => {

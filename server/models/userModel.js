@@ -48,9 +48,9 @@ const userSchema = new Schema({
         required: [true, "password is required"],
     },
 
-    birthday: {
+    dateOfBirth: {
         type: Date,
-        required: [true, 'Birthday is required'],
+        required: [true, 'Date of Birth is required'],
     },
 
     refreshToken: String,

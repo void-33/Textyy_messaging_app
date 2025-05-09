@@ -29,94 +29,32 @@ module.exports = (io) => {
       socket.join(socket.userId);
     });
 
-    socket.on("joinPrivateRoom", async (otherUserId) => {
-      const roomId = getRoomId(socket.userId, otherUserId);
-
-      // Step 1: Check if they're friends
-      const currentUser = await User.findById(socket.userId);
-      if (!currentUser.friends.includes(otherUserId)) {
-        return;
-      }
-      let room = await Room.findOne({
-        isGroup: false,
-        members: { $all: [socket.userId, otherUserId] },
-      });
-
-      if (!room) {
-        room = await Room.create({
-          name: roomId,
-          isGroup: false,
-          members: [socket.userId, otherUserId],
-        });
-      }
-
-      socket.join(roomId);
+    socket.on("joinRoom", async (roomId) => {
+      const room = await Room.findById(roomId);
+      if (room) socket.join(roomId);
     });
 
-    socket.on("joinGroup", async (group) => {
-      let room = await Room.findOne({
-        isGroup: true,
-        members: { $in: [socket.userId] },
-      });
-
-      const members = [
-        ...group.members,
-        { _id: socket.userId, username: socket.username },
-      ];
-
-      if (!room) {
-        room = await Room.create({
-          name: group.name,
-          isGroup: true,
-          members,
-          creator: socket.userId,
-          admin: [socket.userId],
-        });
-        await RoomCard.create({
-          isGroup:true,
-          groupId: room._id
-        })
-      }
-
-      socket.join(room._id);
-    });
-
-    socket.on("privateMessage", async (toUserId, content) => {
-      const roomId = getRoomId(socket.userId, toUserId);
+    socket.on("message",async(roomId, content)=>{
       const message = await Message.create({
         sender: socket.userId,
-        receiver: toUserId,
         content,
+        roomId
+      })
+
+      const roomCard = await RoomCard.findOne({
+        isGroup: false,
+        roomId
       });
 
-      let roomCard = await RoomCard.findOne({
-        isGroup: false,
-        participants: { $all: [socket.userId, toUserId] },
-      });
-      if (!roomCard) {
-        roomCard = await RoomCard.create({
-          isGroup: false,
-          participants: [socket.userId, toUserId],
-        });
-      }
       roomCard.lastMessage = content;
       roomCard.lastMessageAt = Date.now();
       await roomCard.save();
 
-      io.to(roomId).emit("privateMessage", message);
-    });
 
-    socket.on("groupMessage", async (groupId, content) => {
-      const message = await Message.create({
-        sender: socket.userId,
-        groupId,
-        content,
-      });
-      io.to(groupId).emit("groupMessage", message);
-    });
+      io.to(roomId).emit("message",roomId, message);
+    })
 
     socket.on("disconnect", () => {
-      // console.log(`User disconnected: ${socket.id}`);
     });
   });
 };

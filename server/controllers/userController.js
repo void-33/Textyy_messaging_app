@@ -42,10 +42,26 @@ const getFriends = async (req, res) => {
 
     const friends = foundUser.friends;
 
+    const friendsWithRoom = await Promise.all(
+      friends.map(async (friend) => {
+        const room = await Room.findOne({
+          isGroup: false,
+          members: { $all: [userId, friend._id], $size: 2 },
+        }).select("_id");
+
+
+        return {
+          _id: friend._id,
+          username: friend.username,
+          roomId: room?._id || null, // null if no room found
+        };
+      })
+    );
     return res.status(200).json({
       success: true,
       message: "Successfully fetched friend list",
       friends,
+      friendsWithRoom,
     });
   } catch (err) {
     return res
@@ -101,7 +117,6 @@ const unfriendUser = async (req, res) => {
       isGroup: false,
       participants: { $all: [req.userId, otherUserId], $size: 2 },
     });
-
 
     await Room.findOneAndDelete({
       isGroup: false,

@@ -41,18 +41,11 @@ const sendMessage = async (req, res) => {
 }
 
 //function to get 1-1 messages
-// endpoint GET /api/messages/get/:receiverId 
+// endpoint GET /api/messages/get/:roomId 
 const getMessages = async (req, res) => {
-    const { receiverId } = req.params;
-    const senderId = req.userId;
+    const { roomId } = req.params;
     try {
-        const messages = await Message.find({
-            $or: [
-                { sender: senderId, receiver: receiverId },
-                { sender: receiverId, receiver: senderId },
-            ],
-        }).sort({ createdAt: 1 });
-
+        const messages = await Message.find({roomId}).sort({ createdAt: 1 });
         return res.status(200).json({ success: true, message: "Messages succesfully fetched", messages });
     }catch(err){
         return res.status(500).json({success:false, message: "Internal Server Error"});

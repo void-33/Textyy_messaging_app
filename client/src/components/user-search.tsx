@@ -9,30 +9,30 @@ interface UserSearchProps {
   searchQuery: string;
 }
 
-const UserSearch = ({ searchQuery }: UserSearchProps) => {
-
-  interface ReceivedFriendRequestType {
-    _id: string;
-    createdAt: string;
-    from: {
-      _id: string;
-      username: string;
-    };
-  }
-  interface SentFriendRequestType {
-    _id: string;
-    createdAt: string;
-    to: {
-      _id: string;
-      username: string;
-    };
-  }
-
-  interface FriendType {
+interface ReceivedFriendRequestType {
+  _id: string;
+  createdAt: string;
+  from: {
     _id: string;
     username: string;
-  }
+  };
+}
+interface SentFriendRequestType {
+  _id: string;
+  createdAt: string;
+  to: {
+    _id: string;
+    username: string;
+  };
+}
 
+interface FriendType {
+  _id: string;
+  username: string;
+  roomId: string;
+}
+
+const UserSearch = ({ searchQuery }: UserSearchProps) => {
   const [sentFriendRequests, setSentFriendRequests] = useState<
     SentFriendRequestType[]
   >([]);
@@ -61,7 +61,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
       setReceivedFriendRequests(friendReqRes?.data.receivedFriendRequests);
     }
     if (friendRes?.data) {
-      setFriends(friendRes?.data.friends);
+      setFriends(friendRes?.data.friendsWithRoom);
     }
   };
 
@@ -164,20 +164,24 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
     receivedFriendRequests.map((req) => [req.from._id, req._id])
   );
   const sentRequestMap = Object.fromEntries(
-    sentFriendRequests.map((req) => [req.to._id, req._id])
+    sentFriendRequests.map((req) => [req?.to._id, req._id])
   );
-  const friendResults = searchResults.filter((u) =>
-    currentFriendIds.has(u._id)
-  );
+  const friendMap = Object.fromEntries(friends.map(f => [f._id, f.roomId]));
+  const friendResults = searchResults
+  .filter(u => currentFriendIds.has(u._id))
+  .map(u => ({
+    ...u,
+    roomId: friendMap[u._id] || "", // fallback if not found
+  }));
   const nonFriendsResults = searchResults.filter(
     (u) => !currentFriendIds.has(u._id)
   );
 
-  const handleUserSelection = (username: string) => {
+  const handleUserSelection = (roomId: string) => {
     const basePath = location.pathname.startsWith("/friendrequest")
     ? "/friendrequest"
     : "/chats";
-    navigate(`${basePath}/${username}`);
+    navigate(`${basePath}/${roomId}`);
   };
 
   return (
@@ -190,7 +194,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
         <Card
           key={user._id}
           className="my-2 p-3 flex items-center justify-between hover:cursor-pointer"
-          onClick={() => handleUserSelection(user.username)}
+          onClick={() => handleUserSelection(user.roomId)}
         >
           <span className="text-sm font-medium">{user.username}</span>
         </Card>

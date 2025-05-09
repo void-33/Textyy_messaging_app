@@ -6,13 +6,15 @@ const roomCardShema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    //identifier for group
-    groupId: {
+
+    //identifier for room
+    roomId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "room",
-      default: null,
+      required: [true,'Room Id is required for a roomCard'],
     },
-    //identifier for dms
+
+    //only for dms
     participants: [
       {
         type: mongoose.Schema.Types.ObjectId,

@@ -3,22 +3,37 @@ import { create } from "zustand";
 interface Message {
   _id: string;
   sender: string;
-  receiver: string;
+  roomId: string;
   content: string;
-  read: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 interface ChatStore {
-  messages: Message[];
-  setMessages: (msgs: Message[]) => void;
-  addMessage: (msg: Message) => void;
+  messagesByRoom: Record<string, Message[]>;
+  setMessages: (roomId: string, msgs: Message[]) => void;
+  getMessages: (roomId: string) => Message[];
+  addMessage: (roomId: string, msg: Message) => void;
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
-  messages: [],
-  setMessages: (msgs: Message[]) => set({ messages: msgs }),
-  addMessage: (msg: Message) =>
-    set((state) => ({ messages: [...state.messages, msg] })),
+export const useChatStore = create<ChatStore>((set, get) => ({
+  messagesByRoom: {},
+  setMessages: (roomId: string, msgs: Message[]) =>
+    set((state)=>({
+      messagesByRoom: {
+        ...state.messagesByRoom,
+        [roomId]:msgs,
+      }
+    })),
+  getMessages: (roomId:string) => {
+    return get().messagesByRoom[roomId] || [];
+  },
+  addMessage: (roomId:string,msg: Message) =>
+    set((state)=> (
+      {messagesByRoom:{
+        ...state.messagesByRoom,
+        [roomId]: [...(state.messagesByRoom[roomId] || []),msg]
+      }}
+    )
+    )
 }));

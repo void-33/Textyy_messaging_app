@@ -1,6 +1,7 @@
 const User = require("../models/userModel");
 const FriendRequest = require("../models/friendRequestModel");
-const jwt = require("jsonwebtoken");
+const Room = require('../models/roomModel');
+const RoomCard = require('../models/roomCardModel');
 
 //function to send frined request
 //expected req.body = toUserId
@@ -83,6 +84,8 @@ const acceptFriendRequest = async (req, res) => {
       return res.sendStatus(403);
     }
 
+    const otherUserId = friendRequest.from;
+
     //add each other as friend
     await User.findByIdAndUpdate(friendRequest.from, {
       $addToSet: { friends: friendRequest.to },
@@ -95,6 +98,18 @@ const acceptFriendRequest = async (req, res) => {
     //update the friend request status
     friendRequest.status = "accepted";
     await friendRequest.save();
+
+    const room = await Room.create({
+      name:  [currUserId,otherUserId].sort().join("_"),
+      isGroup:false,
+      members: [currUserId,otherUserId],
+    })
+    
+    await RoomCard.create({
+      isGroup:false,
+      roomId: room._id,
+      participants: [currUserId,otherUserId],
+    })
 
     return res
       .status(200)
@@ -188,7 +203,6 @@ const getPendingRequests = async (req, res) => {
     })
       .populate("to", "_id username")
       .select("_id to createdAt");
-
     return res
       .status(200)
       .json({

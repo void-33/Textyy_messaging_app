@@ -9,6 +9,7 @@ import useAccessTokenStore from "../stores/accessTokenStore";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import useCurrUserState from "@/stores/currUserStore";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -25,6 +26,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const clearAccessToken = useAccessTokenStore(
     (state) => state.clearAccessToken
   );
+
+  const setUserId = useCurrUserState((state)=>state.setUserId)
+  const setUsername = useCurrUserState((state)=>state.setUsername)
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
@@ -47,7 +51,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     } finally {
       clearAccessToken();
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -65,6 +69,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         if (res.data.success) {
           setIsAuthenticated(true);
+          setUserId(res.data.user.userId);
+          setUsername(res.data.user.username);
           return;
         }
       }
@@ -75,6 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       if (res.data.success && res.data.accessToken) {
         setAccessToken(res.data.accessToken);
+        setUserId(res.data.user.userId);
+        setUsername(res.data.user.username);
         setIsAuthenticated(true);
         return;
       }

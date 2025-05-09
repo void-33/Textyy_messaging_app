@@ -8,15 +8,16 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import UserSearch from "@/components/user-search";
 
+interface FriendType {
+  _id: string;
+  username: string;
+  roomId: string;
+}
 const FriendsSidebar = () => {
-  interface UsersType {
-    _id: string;
-    username: string;
-  }
   const protectedFetch = useProtectedFetch();
   const navigate = useNavigate();
 
-  const [friends, setFriends] = useState<UsersType[]>([]);
+  const [friends, setFriends] = useState<FriendType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [unfriendingIds, setunfriendingIds] = useState<string[]>([]);
   const [unfriendedIds, setunfriendedIds] = useState<string[]>([]);
@@ -29,7 +30,7 @@ const FriendsSidebar = () => {
     const fetchFriends = async () => {
       const friendRes = await protectedFetch("/api/user/getfriends", "GET");
       if (friendRes?.data.success) {
-        setFriends(friendRes.data.friends);
+        setFriends(friendRes.data.friendsWithRoom);
       }
     };
     fetchFriends();
@@ -89,8 +90,8 @@ const FriendsSidebar = () => {
     setCancellingReqIds((prev) => prev.filter((id) => id !== reqId));
   };
 
-  const handleUserSelection= (username:string)=>{
-    navigate(`/friends/${username}`);
+  const handleUserSelection= (roomId:string)=>{
+    navigate(`/friends/${roomId}`);
   }
 
   return (
@@ -125,7 +126,7 @@ const FriendsSidebar = () => {
               )}
               {friends.map((user) => {
                 return (
-                  <Card key={user._id} className="my-2 mr-2" onClick={()=>handleUserSelection(user.username)}>
+                  <Card key={user._id} className="my-2 mr-2" onClick={()=>handleUserSelection(user.roomId)}>
                     <CardHeader>
                       <h6 className="text-xs tracking-tight lg:text-sm hover:cursor-pointer">
                         {user.username}
