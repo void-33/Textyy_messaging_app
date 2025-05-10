@@ -6,6 +6,31 @@
   nocompatible: true;
 }
 
+/* scroolbar logic for webkit browsers such as chrome */
+*::-webkit-scrollbar{
+  width: 10px;
+}
+*::-webkit-scrollbar-thumb{
+  cursor: pointer;
+  background-color: rgb(126, 122, 122);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 10px;
+}
+*::-webkit-scrollbar-thumb:active{
+  background-color: rgb(58, 58, 181);
+}
+*::-webkit-scrollbar-track{
+  background-color: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+*::-webkit-scrollbar-track:hover{
+  background-color: rgb(55, 54, 54);
+}
+
+
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

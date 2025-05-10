@@ -35,12 +35,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = () => setIsAuthenticated(true);
   const logout = async () => {
-    setIsAuthenticated(false);
     try {
       await axios.get("http://localhost:3500/api/auth/logout", {
         withCredentials: true,
       });
-      clearAccessToken();
     } catch (err: any) {
       const toastId = toast("Logout Error", {
         description: err?.message,
@@ -50,8 +48,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
     } finally {
-      clearAccessToken();
       navigate("/");
+      clearAccessToken();
+      setIsAuthenticated(false);
     }
   };
 
