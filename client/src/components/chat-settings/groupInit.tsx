@@ -12,6 +12,7 @@ import {
 import FriendsScrollArea from "../ui/friendsScrollArea";
 import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 interface UserType {
   _id: string;
@@ -70,7 +71,9 @@ const GroupInit = ({ handleOnSubmit }: AddGroupMembersProps) => {
         >
           Reset
         </Button>
-        <Button onClick={handleProceed}>Proceed</Button>
+        <DialogClose>
+          <Button onClick={handleProceed}>Proceed</Button>
+        </DialogClose>
       </DialogFooter>
     </DialogContent>
     // </Dialog>

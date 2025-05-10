@@ -12,6 +12,7 @@ import GroupInit from "./chat-settings/groupInit";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 
 import useSocketStore from "@/stores/socketStore";
+import useToast from "./ui/Toast";
 
 interface UserType {
   _id: string;
@@ -44,6 +45,7 @@ type RoomCardType = DMRoomCardType | GroupRoomCardType;
 
 export function ChatSidebar() {
   const protectedFetch = useProtectedFetch();
+  const toast = useToast();
   const getSocket = useSocketStore((state) => state.getSocket);
   const messagesByRoom = useChatStore((state) => state.messagesByRoom);
   const navigate = useNavigate();
@@ -54,31 +56,26 @@ export function ChatSidebar() {
 
   const fetchedRoomIds = useRef<Set<string>>(new Set());
 
+  const joinRooms = (roomcard: RoomCardType[]) => {
+    const socket = getSocket();
+    roomcard.forEach((card) => {
+      socket.emit("joinRoom", card.roomId._id);
+    });
+  };
+
+  const fetchRoomCards = async () => {
+    const response = await protectedFetch("/api/roomcards/getroomcards", "GET");
+    const newCards: RoomCardType[] = response?.data.roomCards || [];
+
+    setRoomCards((prevRoomCards) => {
+      const tempCards = prevRoomCards.filter((card) => card.lastMessage === "" && !card.isGroup);
+      return [...tempCards, ...newCards];
+    });
+
+    joinRooms(newCards);
+  };
+
   useEffect(() => {
-    const fetchRoomCards = async () => {
-      const response = await protectedFetch(
-        "/api/roomcards/getroomcards",
-        "GET"
-      );
-      const newCards: RoomCardType[] = response?.data.roomCards || [];
-
-      setRoomCards((prevRoomCards) => {
-        const tempCards = prevRoomCards.filter(
-          (card) => card.lastMessage === ""
-        );
-        return [...tempCards, ...newCards];
-      });
-
-      joinRooms(newCards);
-    };
-
-    const joinRooms = (roomcard: RoomCardType[]) => {
-      const socket = getSocket();
-      roomcard.forEach((card) => {
-        socket.emit("joinRoom", card.roomId._id);
-      });
-    };
-
     fetchRoomCards();
   }, [getSocket, messagesByRoom]);
 
@@ -118,22 +115,19 @@ export function ChatSidebar() {
     navigate(`/chats/${card.roomId._id}`);
   };
 
-  const newGroupCreation = (name: string, members: UserType[]) => {
-    console.log(name, members);
-    // const group = { name, members };
-    // const socket = getSocket();
-    // socket.emit("joinGroup", group);
-
-    // const newRoomCard: RoomCardType = {
-    //   _id: `${"dummy"}-${Date.now()}`,
-    //   name,
-    //   isGroup: true,
-    //   groupId: { _id: "dummy_id", name },
-    //   lastMessage: "",
-    //   lastMessageAt: new Date(),
-    // };
-    // setRoomCards((prevRoomCards) => [newRoomCard, ...prevRoomCards]);
-    // navigate(`/chats/${name}`);
+  const newGroupCreation = async (name: string, members: UserType[]) => {
+    //this function runs when Proceed button is pressed on group creation dialog
+    const body = {
+      name,
+      members,
+    };
+    const response = await protectedFetch("/api/rooms/create", "POST", body);
+    if (response?.data.success) {
+      const room = response?.data.room;
+      toast("Group creation successfull");
+      await fetchRoomCards();
+      navigate(`/chats/${room._id}`)
+    }
   };
 
   const isSelectedCard = (card: RoomCardType) => {

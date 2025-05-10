@@ -38,7 +38,7 @@ const Dashboard = () => {
         className="w-fit"
         style={
           {
-            "--sidebar-width": "12rem",
+            "--sidebar-width": "10vw",
           } as React.CSSProperties as React.CSSProperties & Record<string, any>
         }
       >

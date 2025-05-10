@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/authContext";
+import useCurrUserState from "@/stores/currUserStore";
 
 import { UserRoundPen } from "lucide-react";
 
@@ -17,6 +18,7 @@ interface ProfileDropdownMenuProps {
 
 export function ProfileDropdownMenu(props: ProfileDropdownMenuProps) {
   //state of sidebar either collapsed or exapanded
+  const currUsername= useCurrUserState((state)=>state.username);
   const { state } = props;
   const { logout } = useAuth();
 
@@ -42,7 +44,7 @@ export function ProfileDropdownMenu(props: ProfileDropdownMenuProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
         <DropdownMenuGroup>
-          <DropdownMenuItem>My Profile</DropdownMenuItem>
+          <DropdownMenuItem>{currUsername}</DropdownMenuItem>
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Dark Mode</DropdownMenuItem>
         </DropdownMenuGroup>

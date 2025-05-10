@@ -11,13 +11,31 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { useParams } from "react-router-dom";
 import { useState } from "react";
-import AddGroupMembers from "./chat-settings/groupInit";
 import RenameGroup from "./chat-settings/renameGroup";
 
-export function ChatSettings() {
-  const { username } = useParams();
+
+type PrivateRoomType = {
+  _id: string;
+  name: string;
+  members: UserType[];
+  isGroup: false;
+  otherUser: UserType;
+};
+type GroupRoomType = {
+  _id: string;
+  name: string;
+  members: UserType[];
+  isGroup: true;
+};
+
+type RoomType = PrivateRoomType | GroupRoomType;
+
+type ChatSettingsProps = {
+  currRoom: RoomType|undefined;
+}
+
+export function ChatSettings({currRoom}:ChatSettingsProps) {
 
   const [isGroup, setIsGroup] = useState<boolean>(true);
 
@@ -30,7 +48,7 @@ export function ChatSettings() {
         className="mx-0"
       >
         <SidebarHeader>
-          <h2 className="text-4xl text-center">{username}</h2>
+          <h2 className="text-4xl text-center">{currRoom?.name}</h2>
         </SidebarHeader>
         <SidebarContent>
           <Accordion type="single" collapsible className="w-full">
@@ -47,7 +65,7 @@ export function ChatSettings() {
                 <AccordionTrigger>Group Setting</AccordionTrigger>
                 <AccordionContent className="flex flex-col">
                   <RenameGroup />
-                  <AddGroupMembers />
+                  {/* <AddGroupMembers /> */}
                 </AccordionContent>
               </AccordionItem>
             )}

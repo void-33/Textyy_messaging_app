@@ -8,6 +8,7 @@ import useProtectedFetch from "@/hooks/useProtectedFetch";
 import { useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import useCurrUserState from "@/stores/currUserStore";
+import { ChatSettings } from "./chats-settings";
 
 type UserType = {
   _id: string;
@@ -116,7 +117,7 @@ export function ChatInterface() {
     <>
       {selectedRoom?._id && (
         <Card className="w-full my-2 ml-2 mr-0 p-1">
-          <CardContent className="pl-1 pr-2">
+          <CardContent className="pl-1 pr-2 h-full flex flex-col">
             <Card className="w-full mx-0.5 my-1">
               <CardContent className="flex justify-between">
                 <h2 className="text-xs tracking-tight lg:text-sm">
@@ -133,7 +134,7 @@ export function ChatInterface() {
                 </div>
               </CardContent>
             </Card>
-            <div className="w-full my-2 h-[73vh] border-2 rounded-2xl overflow-auto flex flex-col ">
+            <div className="w-full my-2 grow border-2 rounded-2xl overflow-auto flex flex-col">
               <div className="mt-auto"></div>
               {/* Load messages logic here */}
               {roomMessages.map((message: Message) => (
@@ -188,6 +189,9 @@ export function ChatInterface() {
           </CardContent>
         </Card>
       )}
+
+      {/* chats settings sidebar */}
+      <ChatSettings currRoom={selectedRoom} />
     </>
   );
 }
