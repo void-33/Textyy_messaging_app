@@ -5,15 +5,17 @@ import {
   SidebarHeader,
 } from "./ui/sidebar";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordianItem,
+  AccButton,
+  AccContent,
+  Button,
+} from "./ui/custom-accordion";
+import { CaseSensitiveIcon } from "lucide-react";
 
-import { useState } from "react";
-import RenameGroup from "./chat-settings/renameGroup";
-
+type UserType = {
+  _id: string;
+  username: string;
+};
 
 type PrivateRoomType = {
   _id: string;
@@ -32,13 +34,10 @@ type GroupRoomType = {
 type RoomType = PrivateRoomType | GroupRoomType;
 
 type ChatSettingsProps = {
-  currRoom: RoomType|undefined;
-}
+  currRoom: RoomType | undefined;
+};
 
-export function ChatSettings({currRoom}:ChatSettingsProps) {
-
-  const [isGroup, setIsGroup] = useState<boolean>(true);
-
+export function ChatSettings({ currRoom }: ChatSettingsProps) {
   return (
     <>
       <Sidebar
@@ -51,33 +50,29 @@ export function ChatSettings({currRoom}:ChatSettingsProps) {
           <h2 className="text-4xl text-center">{currRoom?.name}</h2>
         </SidebarHeader>
         <SidebarContent>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="item-1" className="hover:cursor-pointer">
-              <AccordionTrigger>Chat Info</AccordionTrigger>
-              <AccordionContent>Content here</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-2">
-              <AccordionTrigger>Customize Chat</AccordionTrigger>
-              <AccordionContent>content here</AccordionContent>
-            </AccordionItem>
-            {isGroup && (
-              <AccordionItem value="item-6">
-                <AccordionTrigger>Group Setting</AccordionTrigger>
-                <AccordionContent className="flex flex-col">
-                  <RenameGroup />
-                  {/* <AddGroupMembers /> */}
-                </AccordionContent>
-              </AccordionItem>
-            )}
-            <AccordionItem value="item-3">
-              <AccordionTrigger>Media and Files</AccordionTrigger>
-              <AccordionContent>Content here</AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="item-4">
-              <AccordionTrigger>Privacy and Securtiy</AccordionTrigger>
-              <AccordionContent>Content here</AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <AccordianItem>
+            <AccButton className="w-full">Chats Info</AccButton>
+            <AccContent></AccContent>
+          </AccordianItem>
+
+          <AccordianItem>
+            <AccButton className="w-full">Group Settings</AccButton>
+            <AccContent>
+              <Button className="w-full">
+                <CaseSensitiveIcon className="mr-4"/>Change Group Name
+              </Button>
+            </AccContent>
+          </AccordianItem>
+
+          <AccordianItem>
+            <AccButton className="w-full">Media and Files</AccButton>
+            <AccContent></AccContent>
+          </AccordianItem>
+
+          <AccordianItem>
+            <AccButton className="w-full">Privacy and Security</AccButton>
+            <AccContent></AccContent>
+          </AccordianItem>
         </SidebarContent>
         <SidebarFooter>Footer here</SidebarFooter>
       </Sidebar>
