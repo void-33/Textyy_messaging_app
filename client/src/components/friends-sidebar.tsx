@@ -38,6 +38,7 @@ const FriendsSidebar = () => {
 
   const unfriendUser = async (userId: string) => {
     setunfriendingIds((prev) => [...prev, userId]);
+    navigate('/friends');
     const res = await protectedFetch(`/api/user/unfriend/${userId}`, "DELETE");
     if (res?.data.success) {
       const toastId = toast("Unfriended", {

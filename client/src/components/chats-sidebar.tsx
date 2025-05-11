@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import clsx from "clsx";
 
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import UserSearch from "./user-search";
@@ -54,8 +54,6 @@ export function ChatSidebar() {
   const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const fetchedRoomIds = useRef<Set<string>>(new Set());
-
   const joinRooms = (roomcard: RoomCardType[]) => {
     const socket = getSocket();
     roomcard.forEach((card) => {
@@ -85,7 +83,7 @@ export function ChatSidebar() {
 
     const roomCardExists = roomCards.some((card) => card.roomId._id === roomId);
 
-    if (!roomCardExists && !fetchedRoomIds.current.has(roomId)) {
+    if(!roomCardExists){
       const fetchRoomcardbyId = async () => {
         const response = await protectedFetch(
           `/api/roomcards/getbyid/${roomId}`,
@@ -101,7 +99,6 @@ export function ChatSidebar() {
             if (exists) return prevRoomCards;
             return [newRoomCard, ...prevRoomCards];
           });
-          fetchedRoomIds.current.add(newRoomCard.roomId._id); // ✅ move inside success
           const socket = getSocket();
           socket.emit('joinRoom',newRoomCard.roomId._id)
         } else {
