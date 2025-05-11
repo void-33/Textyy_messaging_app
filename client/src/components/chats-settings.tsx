@@ -4,37 +4,13 @@ import {
   SidebarFooter,
   SidebarHeader,
 } from "./ui/sidebar";
-import {
-  AccordianItem,
-  AccButton,
-  AccContent,
-  Button,
-} from "./ui/custom-accordion";
-import { CaseSensitiveIcon } from "lucide-react";
+import { AccordianItem, AccButton, AccContent } from "./ui/custom-accordion";
+import GroupRenameButton from "./chat-settings/renameGroup";
 
-type UserType = {
-  _id: string;
-  username: string;
-};
-
-type PrivateRoomType = {
-  _id: string;
-  name: string;
-  members: UserType[];
-  isGroup: false;
-  otherUser: UserType;
-};
-type GroupRoomType = {
-  _id: string;
-  name: string;
-  members: UserType[];
-  isGroup: true;
-};
-
-type RoomType = PrivateRoomType | GroupRoomType;
+import { RoomType } from "@/utils/types";
 
 type ChatSettingsProps = {
-  currRoom: RoomType | undefined;
+  currRoom: RoomType | null;
 };
 
 export function ChatSettings({ currRoom }: ChatSettingsProps) {
@@ -51,26 +27,24 @@ export function ChatSettings({ currRoom }: ChatSettingsProps) {
         </SidebarHeader>
         <SidebarContent>
           <AccordianItem>
-            <AccButton className="w-full">Chats Info</AccButton>
+            <AccButton>Chats Info</AccButton>
             <AccContent></AccContent>
           </AccordianItem>
 
           <AccordianItem>
-            <AccButton className="w-full">Group Settings</AccButton>
+            <AccButton>Group Settings</AccButton>
             <AccContent>
-              <Button className="w-full">
-                <CaseSensitiveIcon className="mr-4"/>Change Group Name
-              </Button>
+              <GroupRenameButton currRoom={currRoom}/>
             </AccContent>
           </AccordianItem>
 
           <AccordianItem>
-            <AccButton className="w-full">Media and Files</AccButton>
+            <AccButton>Media and Files</AccButton>
             <AccContent></AccContent>
           </AccordianItem>
 
           <AccordianItem>
-            <AccButton className="w-full">Privacy and Security</AccButton>
+            <AccButton>Privacy and Security</AccButton>
             <AccContent></AccContent>
           </AccordianItem>
         </SidebarContent>

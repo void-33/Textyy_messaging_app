@@ -68,7 +68,8 @@ export function ChatSidebar() {
     const newCards: RoomCardType[] = response?.data.roomCards || [];
 
     setRoomCards((prevRoomCards) => {
-      const tempCards = prevRoomCards.filter((card) => card.lastMessage === "" && !card.isGroup);
+      const newCardIds = new Set(newCards.map((card)=>card._id));
+      const tempCards = prevRoomCards.filter((card) => !newCardIds.has(card._id));
       return [...tempCards, ...newCards];
     });
 
@@ -100,7 +101,9 @@ export function ChatSidebar() {
             if (exists) return prevRoomCards;
             return [newRoomCard, ...prevRoomCards];
           });
-          fetchedRoomIds.current.add(roomId); // ✅ move inside success
+          fetchedRoomIds.current.add(newRoomCard.roomId._id); // ✅ move inside success
+          const socket = getSocket();
+          socket.emit('joinRoom',newRoomCard.roomId._id)
         } else {
           navigate("/chats");
         }

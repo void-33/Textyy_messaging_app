@@ -69,7 +69,6 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
     fetchFriendRequestsAndFriends();
   }, []);
 
-
   useEffect(() => {
     const timeout = setTimeout(async () => {
       if (searchQuery.trim().length > 0) {
@@ -166,21 +165,24 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
   const sentRequestMap = Object.fromEntries(
     sentFriendRequests.map((req) => [req?.to._id, req._id])
   );
-  const friendMap = Object.fromEntries(friends.map(f => [f._id, f.roomId]));
+  const friendMap = Object.fromEntries(friends.map((f) => [f._id, f.roomId]));
   const friendResults = searchResults
-  .filter(u => currentFriendIds.has(u._id))
-  .map(u => ({
-    ...u,
-    roomId: friendMap[u._id] || "", // fallback if not found
-  }));
+    .filter((u) => currentFriendIds.has(u._id))
+    .map((u) => ({
+      ...u,
+      roomId: friendMap[u._id] || "", // fallback if not found
+    }));
   const nonFriendsResults = searchResults.filter(
     (u) => !currentFriendIds.has(u._id)
   );
 
   const handleUserSelection = (roomId: string) => {
-    const basePath = location.pathname.startsWith("/friendrequest")
-    ? "/friendrequest"
-    : "/chats";
+    const path = location.pathname;
+    const basePath = path.startsWith("/friendrequest")
+      ? "/friendrequest"
+      : path.startsWith("/friends")
+      ? "/friends"
+      : "/chats";
     navigate(`${basePath}/${roomId}`);
   };
 

@@ -40,7 +40,7 @@ const FriendsScrollArea = ({queuedToAdd,setQueuedToAdd}: FriendsScrollAreaProps)
     <>
       <div className="flex flex-row gap-1 flex-wrap">
         {queuedToAdd.map((q) => (
-          <div className="flex flex-row justify-between w-fit items-center border-2 border-secondary rounded-xl p-1 text-sm">
+          <div key={q._id} className="flex flex-row justify-between w-fit items-center border-2 border-secondary rounded-xl p-1 text-sm">
             {q.username}
             <X
               onClick={() =>

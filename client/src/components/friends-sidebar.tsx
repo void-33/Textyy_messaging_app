@@ -37,18 +37,18 @@ const FriendsSidebar = () => {
   }, []);
 
   const unfriendUser = async (userId: string) => {
-    setunfriendingIds((prev)=>[...prev, userId]);
-    const res = await protectedFetch(`/api/user/unfriend/${userId}`,'DELETE');
-    if(res?.data.success){
+    setunfriendingIds((prev) => [...prev, userId]);
+    const res = await protectedFetch(`/api/user/unfriend/${userId}`, "DELETE");
+    if (res?.data.success) {
       const toastId = toast("Unfriended", {
         action: {
           label: "Close",
           onClick: () => toast.dismiss(toastId),
         },
       });
-        setunfriendedIds((prev)=>[...prev,userId]);
+      setunfriendedIds((prev) => [...prev, userId]);
     }
-    setunfriendingIds((prev)=>prev.filter((id)=>id!== userId));
+    setunfriendingIds((prev) => prev.filter((id) => id !== userId));
   };
 
   const sendFriendRequest = async (toUserId: string) => {
@@ -69,7 +69,7 @@ const FriendsSidebar = () => {
     setSendingRequestIds((prev) => prev.filter((id) => id !== toUserId));
   };
 
-  const cancelFriendRequest = async (reqId: string,toUserId:string) => {
+  const cancelFriendRequest = async (reqId: string, toUserId: string) => {
     setCancellingReqIds((prev) => [...prev, reqId]);
     const res = await protectedFetch(
       `/api/friendrequest/cancel/${reqId}`,
@@ -90,9 +90,9 @@ const FriendsSidebar = () => {
     setCancellingReqIds((prev) => prev.filter((id) => id !== reqId));
   };
 
-  const handleUserSelection= (roomId:string)=>{
+  const handleUserSelection = (roomId: string) => {
     navigate(`/friends/${roomId}`);
-  }
+  };
 
   return (
     <Card className="grow w-[30vw] my-2 hover:cursor-pointer flex flex-col">
@@ -126,7 +126,11 @@ const FriendsSidebar = () => {
               )}
               {friends.map((user) => {
                 return (
-                  <Card key={user._id} className="my-2 mr-2" onClick={()=>handleUserSelection(user.roomId)}>
+                  <Card
+                    key={user._id}
+                    className="my-2 mr-2"
+                    onClick={() => handleUserSelection(user.roomId)}
+                  >
                     <CardHeader>
                       <h6 className="text-xs tracking-tight lg:text-sm hover:cursor-pointer">
                         {user.username}
@@ -142,9 +146,13 @@ const FriendsSidebar = () => {
                               disabled={cancellingReqIds.includes(
                                 requestIdMap[user._id]
                               )}
-                              onClick={() =>
-                                cancelFriendRequest(requestIdMap[user._id],user._id)
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelFriendRequest(
+                                  requestIdMap[user._id],
+                                  user._id
+                                );
+                              }}
                             >
                               {cancellingReqIds.includes(requestIdMap[user._id])
                                 ? "Cancelling..."
@@ -155,7 +163,7 @@ const FriendsSidebar = () => {
                               size="sm"
                               variant="outline"
                               disabled={sendingRequestIds.includes(user._id)}
-                              onClick={() => sendFriendRequest(user._id)}
+                              onClick={(e) =>{e.stopPropagation(); sendFriendRequest(user._id)}}
                             >
                               {sendingRequestIds.includes(user._id)
                                 ? "Adding..."
@@ -168,7 +176,7 @@ const FriendsSidebar = () => {
                           size="sm"
                           variant="outline"
                           disabled={unfriendingIds.includes(user._id)}
-                          onClick={() => unfriendUser(user._id)}
+                          onClick={(e) =>{e.stopPropagation(); unfriendUser(user._id)}}
                         >
                           {unfriendingIds.includes(user._id)
                             ? "Unfriending..."

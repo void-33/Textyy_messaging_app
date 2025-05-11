@@ -48,7 +48,7 @@ const AccButton = ({ children, className, iconClassName }: AccButtonProps) => {
   return (
     <button
       onClick={toggle}
-      className={`rounded-md flex items-center p-2 text-md hover:cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-[#262626] ${className}`}
+      className={`w-full rounded-md flex items-center p-2 text-md hover:cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-[#262626] ${className}`}
     >
       {children}
       <ChevronDown
@@ -69,8 +69,8 @@ type ButtonProps = {
   children?: ReactNode;
   className?: string;
 };
-const Button = ({ children, className }: ButtonProps) => {
-  return <button className={`rounded-md flex items-center p-2 text-md hover:cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-[#262626] ${className}`} >{children}</button>;
+const AccButtonLookalike = ({ children, className }: ButtonProps) => {
+  return <div className={`rounded-md flex items-center p-2 text-md hover:cursor-pointer hover:bg-[#f5f5f5] dark:hover:bg-[#262626] ${className}`} >{children}</div>;
 };
 
-export { AccordianItem, AccContent, AccButton, Button };
+export { AccordianItem, AccContent, AccButton, AccButtonLookalike };

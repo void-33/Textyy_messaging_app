@@ -29,6 +29,8 @@ const GroupInit = ({ handleOnSubmit }: AddGroupMembersProps) => {
 
   const handleProceed = () => {
     handleOnSubmit(groupName, queuedToAdd);
+    setGroupName('');
+    setQueuedToAdd([]); 
   };
 
   return (
@@ -71,7 +73,7 @@ const GroupInit = ({ handleOnSubmit }: AddGroupMembersProps) => {
         >
           Reset
         </Button>
-        <DialogClose>
+        <DialogClose asChild>
           <Button onClick={handleProceed}>Proceed</Button>
         </DialogClose>
       </DialogFooter>

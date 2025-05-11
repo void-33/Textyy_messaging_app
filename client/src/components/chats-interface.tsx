@@ -9,6 +9,7 @@ import { useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import useCurrUserState from "@/stores/currUserStore";
 import { ChatSettings } from "./chats-settings";
+import useSelectedRoomState from "@/stores/selectedRoomStore";
 
 type UserType = {
   _id: string;
@@ -57,6 +58,9 @@ const icons = [
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
   const { roomId } = useParams();
+  
+  const selectedRoom = useSelectedRoomState((state)=>state.room);
+  const setSelectedRoom = useSelectedRoomState((state)=>state.setRoom);
 
   const setMessages = useChatStore((state) => state.setMessages);
   const messagesByRoom = useChatStore((state) => state.messagesByRoom);
@@ -64,7 +68,6 @@ export function ChatInterface() {
   const currUserId = useCurrUserState((state) => state.userId);
 
   const [inputText, setInputText] = useState<string>("");
-  const [selectedRoom, setSelectedRoom] = useState<RoomType>();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
