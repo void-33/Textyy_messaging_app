@@ -11,11 +11,10 @@ const roomCardShema = new mongoose.Schema(
     roomId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "room",
-      required: [true,'Room Id is required for a roomCard'],
+      required: [true, "Room Id is required for a roomCard"],
     },
 
-    //only for dms
-    participants: [
+    members: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
@@ -34,22 +33,8 @@ const roomCardShema = new mongoose.Schema(
 );
 
 roomCardShema.pre("validate", function (next) {
-  if (this.isGroup) {
-    if (!this.groupId) {
-      return next(new Error("Group chats must have a groupId."));
-    }
-    if (this.participants.length!==0) {
-      return next(
-        new Error("Group chats should not have participants directly.")
-      );
-    }
-  } else {
-    if (this.participants?.length !== 2) {
-      return next(new Error("Private chats must have exactly 2 participants."));
-    }
-    if (this.groupId) {
-      return next(new Error("Private chats must not have a groupId."));
-    }
+  if (!this.isGroup && this.members?.length !== 2) {
+    return next(new Error("Private chats must have exactly 2 members."));
   }
   next();
 });

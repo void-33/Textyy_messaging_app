@@ -34,27 +34,31 @@ module.exports = (io) => {
       if (room) socket.join(roomId);
     });
 
-    socket.on("message",async(roomId, content)=>{
+    socket.on("message", async (roomId, content) => {
+      if (!socket.rooms.has(roomId)) {
+        return; // reject the message silently or emit an error
+      }
+      
+      const roomCard = await RoomCard.findOne({ roomId });
+
+      if(!roomCard.members.includes(socket.userId)){
+        return;
+      }
+
       const message = await Message.create({
         sender: socket.userId,
         content,
-        roomId
-      })
-
-      const roomCard = await RoomCard.findOne({
-        isGroup: false,
-        roomId
+        roomId,
       });
+
 
       roomCard.lastMessage = content;
       roomCard.lastMessageAt = Date.now();
       await roomCard.save();
 
-
-      io.to(roomId).emit("message",roomId, message);
-    })
-
-    socket.on("disconnect", () => {
+      io.to(roomId).emit("message", roomId, message);
     });
+
+    socket.on("disconnect", () => {});
   });
 };

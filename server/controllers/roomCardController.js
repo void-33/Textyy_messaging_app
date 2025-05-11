@@ -4,26 +4,15 @@ const RoomCard = require("../models/roomCardModel");
 // GET /api/roomcards/getroomcards
 const getUserRoomCards = async (req, res) => {
   const userId = req.userId;
-  console.log('general request');
   try {
-    const groups = await Room.find({ isGroup: true, members: userId })
-      .select("_id")
-      .lean();
-
-    const groupIds = groups.map((group) => group._id);
-
-    const roomCards = await RoomCard.find({
-      $or: [
-        { isGroup: false, participants: userId },
-        { isGroup: true, roomId: { $in: groupIds } },
-      ],
-    })
-      .populate("participants", "_id username")
+    const roomCards = await RoomCard.find({ members: userId })
+      .populate("members", "_id username")
       .populate("roomId", "_id name")
       .sort({ lastMessageAt: -1 });
 
+    //filter out dms with no messages
     const filteredroomCards = roomCards.filter(
-      (card) => card.lastMessage !== ""
+      (card) => card.isGroup || card.lastMessage !== ""
     );
 
     //provide name for each room card- dm- ohther user's username , grp- grpname
@@ -32,8 +21,8 @@ const getUserRoomCards = async (req, res) => {
       if (roomCardObj.isGroup) {
         roomCardObj.name = roomCard.roomId?.name || "Unknown Group";
       } else {
-        const otherUser = roomCardObj.participants.find(
-          (participant) => participant._id.toString() !== userId
+        const otherUser = roomCardObj.members.find(
+          (member) => member._id.toString() !== userId
         );
         roomCardObj.name = otherUser ? otherUser.username : "Unknown User";
       }
@@ -46,8 +35,8 @@ const getUserRoomCards = async (req, res) => {
         // const roomCardObj = roomCard.toObject();
         const roomCardObj = roomCard;
 
-        const otherUser = roomCardObj.participants.find(
-          (participant) => participant._id.toString() !== userId
+        const otherUser = roomCardObj.members.find(
+          (member) => member._id.toString() !== userId
         );
         roomCardObj.otherUser = otherUser;
         return roomCardObj;
@@ -71,26 +60,26 @@ const getUserRoomCards = async (req, res) => {
 const getRoomCardbyId = async (req, res) => {
   const { roomId } = req.params;
   const currUserId = req.userId;
-  console.log('id request');
   try {
     const roomCard = await RoomCard.findOne({ roomId })
-      .populate("participants", "_id username")
+      .populate("members", "_id username")
       .populate("roomId", "_id name");
 
     if (
       !roomCard ||
-      !roomCard.participants.some(
-        (participant) => participant._id.toString() === currUserId
-      )
+      !roomCard.members.some((member) => member._id.toString() === currUserId)
     )
       return res.status(404).json({ success: false, message: "No such user" });
 
     const roomCardObj = roomCard.toObject();
-    const otherUser = roomCardObj.participants.find(
-      (participant) => participant._id.toString() !== currUserId
-    );
-    roomCardObj.name = otherUser.username || "Unknown User";
-    roomCardObj.otherUser = otherUser;
+    if (!roomCardObj.isGroup) {
+      const otherUser = roomCardObj.members.find(
+        (member) => member._id.toString() !== currUserId
+      );
+      roomCardObj.name = otherUser.username || "Unknown User";
+      roomCardObj.otherUser = otherUser;
+    }
+
     return res.status(200).json({
       success: true,
       message: "RoomCard fetched successfully",

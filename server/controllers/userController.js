@@ -115,7 +115,7 @@ const unfriendUser = async (req, res) => {
 
     await RoomCard.findOneAndDelete({
       isGroup: false,
-      participants: { $all: [req.userId, otherUserId], $size: 2 },
+      members: { $all: [req.userId, otherUserId], $size: 2 },
     });
 
     await Room.findOneAndDelete({

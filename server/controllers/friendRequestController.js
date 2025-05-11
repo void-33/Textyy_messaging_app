@@ -108,7 +108,7 @@ const acceptFriendRequest = async (req, res) => {
     await RoomCard.create({
       isGroup:false,
       roomId: room._id,
-      participants: [currUserId,otherUserId],
+      members: [currUserId,otherUserId],
     })
 
     return res
