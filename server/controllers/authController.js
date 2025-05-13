@@ -1,6 +1,8 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
+const {sendVerificationEmail} = require('../services/sendEmail');
 
 //fucntion to register new users
 // expected req = username, password, email, birthday, firstName, lastName
@@ -57,6 +59,8 @@ const handleRegister = async (req, res) => {
     //hashing password
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+
     const newUser = await User.create({
       username: req.body.username,
       password: hashedPassword,
@@ -64,7 +68,10 @@ const handleRegister = async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       dateOfBirth: dob,
+      emailVerificationToken,
     });
+
+    sendVerificationEmail(newUser.email, emailVerificationToken);
     return res
       .status(201)
       .json({ success: true, message: "New user registered successfully" });
@@ -101,6 +108,12 @@ const handleLogin = async (req, res) => {
     return res
       .status(404)
       .json({ success: false, message: "User doesn't exist" });
+  }
+
+  if(!foundUser.isEmailVerified){
+    return res.status(404)
+    .json({success:false, message: "Email is not verified"});
+    
   }
 
   const passwordMatch = await bcrypt.compare(
@@ -283,6 +296,37 @@ const handleAccessTokenVerification = (req, res) => {
   });
 };
 
+// GET /api/auth/verify-email?token=verificationToken
+const handleEmailVerification = async (req,res) => {
+  const {token} = req.query;
+  try{
+    const user = await User.findOne({emailVerificationToken:token});
+
+    if(!token) {
+      return res.status(400).send('Missing verification Token');
+    }
+
+    if(!user) {
+      return res.status(400).send('Invalid Token');
+    }
+
+    if(user.emailTokenExpiry < Date.now()){
+      return res.status(400).send("Token has expired. Please request a new verification email");
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken= '';
+    user.emailTokenExpiry = null;
+
+    await user.save();
+
+    return res.status(200).send("✅ Email verified successfully! You can now log in.");
+  }catch(err){
+    return res.status(500).send("Internal server Error");
+  }
+  
+}
+
 module.exports = {
   handleRegister,
   handleLogin,
@@ -290,4 +334,5 @@ module.exports = {
   handleDeleteAccount,
   handleNewAccessToken,
   handleAccessTokenVerification,
+  handleEmailVerification
 };
