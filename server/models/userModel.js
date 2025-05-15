@@ -67,14 +67,9 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  emailVerificationToken: {
-    type: String,
-    default: "",
-  },
-  emailTokenExpiry: {
-    type: Date,
-    default: ()=>Date.now() + 1000 * 60 * 60, //1 hr 
-  }
+  emailVerificationToken: String,
+  emailTokenExpiry: Date,
+  emailCooldownExpiry: Date,
 });
 
 module.exports = mongoose.model("user", userSchema);

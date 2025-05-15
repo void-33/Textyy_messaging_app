@@ -9,6 +9,7 @@ router.delete('/deleteaccount',authController.handleDeleteAccount);
 router.get('/newtoken',authController.handleNewAccessToken);
 router.get('/verifytoken',authController.handleAccessTokenVerification);
 router.get('/verify-email',authController.handleEmailVerification);
+router.post('/send-verification-email',authController.handleSendVerificationEmail);
 
 
 module.exports = router;

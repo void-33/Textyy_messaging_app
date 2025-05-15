@@ -32,6 +32,7 @@ import { useForm } from "react-hook-form";
 import axios from "axios";
 import useToast from "./ui/Toast";
 import useAuthPageModeState from "@/stores/authPageModeStore";
+import { useNavigate } from "react-router-dom";
 
 const formSchema = z
   .object({
@@ -83,7 +84,8 @@ const formItems = [
 
 const Signup = () => {
   const toast = useToast();
-  const setValue = useAuthPageModeState((state)=>state.setValue);
+  const navigate = useNavigate();
+  const setValue = useAuthPageModeState((state) => state.setValue);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -106,7 +108,9 @@ const Signup = () => {
       if (response.data.success) {
         toast(response.data.message);
         form.reset();
-        setValue('logIn');
+        setValue("logIn");
+        localStorage.setItem('email',values.email);
+        navigate('/verify-email');
       }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {

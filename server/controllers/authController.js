@@ -1,8 +1,8 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const crypto = require('crypto');
-const {sendVerificationEmail} = require('../services/sendEmail');
+const crypto = require("crypto");
+const { sendVerificationEmail } = require("../services/sendEmail");
 
 //fucntion to register new users
 // expected req = username, password, email, birthday, firstName, lastName
@@ -61,6 +61,7 @@ const handleRegister = async (req, res) => {
 
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
 
+    
     const newUser = await User.create({
       username: req.body.username,
       password: hashedPassword,
@@ -68,10 +69,12 @@ const handleRegister = async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       dateOfBirth: dob,
-      emailVerificationToken,
+      emailVerificationToken : emailVerificationToken,
+      emailTokenExpiry : Date.now() + 1000 * 60 * 10, //10min
+      emailCooldownExpiry : Date.now() + 1000 * 60 * 1, //1min
     });
-
-    sendVerificationEmail(newUser.email, emailVerificationToken);
+    
+    sendVerificationEmail(req.body.email, emailVerificationToken);
     return res
       .status(201)
       .json({ success: true, message: "New user registered successfully" });
@@ -110,10 +113,12 @@ const handleLogin = async (req, res) => {
       .json({ success: false, message: "User doesn't exist" });
   }
 
-  if(!foundUser.isEmailVerified){
-    return res.status(404)
-    .json({success:false, message: "Email is not verified"});
-    
+  if (!foundUser.isEmailVerified) {
+    return res.status(404).json({
+      success: false,
+      message: "Email is not verified",
+      redirectToVerification: true,
+    });
   }
 
   const passwordMatch = await bcrypt.compare(
@@ -153,14 +158,12 @@ const handleLogin = async (req, res) => {
       username: foundUser.username,
     };
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Successfully logged in",
-        accessToken,
-        user,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Successfully logged in",
+      accessToken,
+      user,
+    });
   } else {
     return res
       .status(401)
@@ -261,14 +264,12 @@ const handleNewAccessToken = async (req, res) => {
       userId: decoded.userId,
       username: decoded.username,
     };
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Accesstoken refreshed",
-        accessToken,
-        user,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Accesstoken refreshed",
+      accessToken,
+      user,
+    });
   } catch (err) {
     return res.sendStatus(403);
   }
@@ -297,35 +298,82 @@ const handleAccessTokenVerification = (req, res) => {
 };
 
 // GET /api/auth/verify-email?token=verificationToken
-const handleEmailVerification = async (req,res) => {
-  const {token} = req.query;
-  try{
-    const user = await User.findOne({emailVerificationToken:token});
+const handleEmailVerification = async (req, res) => {
+  const { token } = req.query;
+  try {
+    const user = await User.findOne({ emailVerificationToken: token });
 
-    if(!token) {
-      return res.status(400).send('Missing verification Token');
+    if (!token) {
+      return res.status(400).send("Missing verification Token");
     }
 
-    if(!user) {
-      return res.status(400).send('Invalid Token');
+    if (!user) {
+      return res.status(400).send("Invalid Token");
     }
 
-    if(user.emailTokenExpiry < Date.now()){
-      return res.status(400).send("Token has expired. Please request a new verification email");
+    if (user.emailTokenExpiry < Date.now()) {
+      return res
+        .status(400)
+        .send("Token has expired. Please request a new verification email");
     }
 
     user.isEmailVerified = true;
-    user.emailVerificationToken= '';
+    user.emailVerificationToken = "";
     user.emailTokenExpiry = null;
+    user.emailCooldownExpiry = null;
 
     await user.save();
 
-    return res.status(200).send("✅ Email verified successfully! You can now log in.");
-  }catch(err){
+    return res
+      .status(200)
+      .send("✅ Email verified successfully! You can now close this page.");
+  } catch (err) {
     return res.status(500).send("Internal server Error");
   }
-  
-}
+};
+
+//POST /api/auth/send-verification-email
+const handleSendVerificationEmail = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User is not registered" });
+    }
+
+    if (user.emailCooldownExpiry > Date.now()) {
+      return res
+        .status(429)
+        .json({
+          success: false,
+          message: "Too many requests. Try again later",
+        });
+    }
+
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    user.emailVerificationToken = emailVerificationToken;
+    user.emailTokenExpiry = Date.now() + 1000 * 60 * 10; //10min
+    user.emailCooldownExpiry = Date.now() + 1000 * 60 * 1; //1min
+
+    await user.save();
+
+    sendVerificationEmail(email, emailVerificationToken);
+    return res.status(200).json({
+      success: true,
+      message: "Verification email sent successsfully",
+    });
+  } catch (err) {
+    return res.status(500).send("Internal server Error");
+  }
+};
 
 module.exports = {
   handleRegister,
@@ -334,5 +382,6 @@ module.exports = {
   handleDeleteAccount,
   handleNewAccessToken,
   handleAccessTokenVerification,
-  handleEmailVerification
+  handleEmailVerification,
+  handleSendVerificationEmail,
 };
