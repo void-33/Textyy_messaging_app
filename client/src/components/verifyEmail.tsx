@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import {
   Card,
@@ -10,19 +10,23 @@ import {
 import axios from "axios";
 import useToast from "./ui/Toast";
 
-const COOLDOWN_SECODS = 60;
+const COOLDOWN_SECODS = 10;
 
 const VerifyEmail = () => {
   const [seconds, setSeconds] = useState(COOLDOWN_SECODS);
   const email = localStorage.getItem("email");
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const toast = useToast();
 
-  const countDown = () => {
-    const interval = setInterval(() => {
+  const startCountDown = () => {
+    if(intervalRef.current) clearInterval(intervalRef.current);
+
+    intervalRef.current = setInterval(() => {
       setSeconds((prev) => {
         if (prev <= 1) {
-          clearInterval(interval);
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
           return 0;
         }
         return prev - 1;
@@ -32,13 +36,19 @@ const VerifyEmail = () => {
 
   const resetCountDown = () => {
     setSeconds(COOLDOWN_SECODS);
-    countDown();
+    startCountDown();
   };
 
   const formattedTime = `0:${seconds < 10 ? "0" : ""}${seconds}`;
 
   useEffect(() => {
-    countDown();
+    startCountDown();
+    return ()=>{
+        if(intervalRef.current){
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+    };
   }, []);
 
   const sendVerification = async () => {
