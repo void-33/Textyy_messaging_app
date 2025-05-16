@@ -40,6 +40,12 @@ const handleRegister = async (req, res) => {
   //duplicate username:
   let duplicate = await User.findOne({ username: req.body.username }).exec();
   if (duplicate) {
+    if (!duplicate.isEmailVerified && duplicate.email === req.body.email) {
+      return res.status(409).json({
+        success: false,
+        message: "User already registered.Try logging In.",
+      });
+    }
     return res
       .status(409)
       .json({ success: false, message: "Username already taken" });
@@ -61,7 +67,6 @@ const handleRegister = async (req, res) => {
 
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
 
-    
     const newUser = await User.create({
       username: req.body.username,
       password: hashedPassword,
@@ -69,15 +74,24 @@ const handleRegister = async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       dateOfBirth: dob,
-      emailVerificationToken : emailVerificationToken,
-      emailTokenExpiry : Date.now() + 1000 * 60 * 10, //10min
-      emailCooldownExpiry : Date.now() + 1000 * 60 * 1, //1min
+      emailVerificationToken: emailVerificationToken,
+      emailTokenExpiry: Date.now() + 1000 * 60 * 10, //10min
+      emailCooldownExpiry: Date.now() + 1000 * 60 * 1, //1min
     });
-    
+
     sendVerificationEmail(req.body.email, emailVerificationToken);
-    return res
-      .status(201)
-      .json({ success: true, message: "New user registered successfully" });
+
+    const emailResendToken = jwt.sign(
+      { email: req.body.email },
+      process.env.EMAIL_RESEND_TOKEN_SECRET,
+      { expiresIn: process.env.EMAIL_RESEND_TOKEN_EXPIRY }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "New user registered successfully",
+      emailResendToken,
+    });
   } catch (err) {
     //handle validation error(for email)
     if (err.name === "ValidationError") {
@@ -114,10 +128,25 @@ const handleLogin = async (req, res) => {
   }
 
   if (!foundUser.isEmailVerified) {
+    const emailResendToken = jwt.sign(
+      { email: req.body.email },
+      process.env.EMAIL_RESEND_TOKEN_SECRET,
+      { expiresIn: process.env.EMAIL_RESEND_TOKEN_EXPIRY }
+    );
+
+    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+    foundUser.emailVerificationToken = emailVerificationToken;
+    foundUser.emailTokenExpiry = Date.now() + 1000 * 60 * 10; //10min
+    foundUser.emailCooldownExpiry = Date.now() + 1000 * 60 * 1; //1min
+    foundUser.save();
+
+    sendVerificationEmail(req.body.email, emailVerificationToken);
+
     return res.status(404).json({
       success: false,
       message: "Email is not verified",
       redirectToVerification: true,
+      emailResendToken,
     });
   }
 
@@ -304,17 +333,20 @@ const handleEmailVerification = async (req, res) => {
     const user = await User.findOne({ emailVerificationToken: token });
 
     if (!token) {
-      return res.status(400).send("Missing verification Token");
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing verification Token" });
     }
 
     if (!user) {
-      return res.status(400).send("Invalid Token");
+      return res.status(400).json({ success: false, message: "Invalid Token" });
     }
 
     if (user.emailTokenExpiry < Date.now()) {
-      return res
-        .status(400)
-        .send("Token has expired. Please request a new verification email");
+      return res.status(400).json({
+        success: false,
+        message: "Token has expired. Please request a new verification email",
+      });
     }
 
     user.isEmailVerified = true;
@@ -324,23 +356,37 @@ const handleEmailVerification = async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(200)
-      .send("✅ Email verified successfully! You can now close this page.");
+    return res.status(200).json({
+      success: true,
+      message: "✅ Email verified successfully! You can now close this page.",
+    });
   } catch (err) {
-    return res.status(500).send("Internal server Error");
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server Error" });
   }
 };
 
 //POST /api/auth/send-verification-email
 const handleSendVerificationEmail = async (req, res) => {
-  const { email } = req.body;
+  const { token } = req.body;
   try {
-    if (!email) {
+    if (!token) {
       return res
         .status(400)
-        .json({ success: false, message: "Email is required" });
+        .json({ success: false, message: "Invalid request" });
     }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.EMAIL_RESEND_TOKEN_SECRET);
+    } catch (err) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const email = decoded.email;
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -349,13 +395,17 @@ const handleSendVerificationEmail = async (req, res) => {
         .json({ success: false, message: "User is not registered" });
     }
 
-    if (user.emailCooldownExpiry > Date.now()) {
+    if (user.isEmailVerified) {
       return res
-        .status(429)
-        .json({
-          success: false,
-          message: "Too many requests. Try again later",
-        });
+        .status(400)
+        .json({ success: false, message: "Email already verified" });
+    }
+
+    if (user.emailCooldownExpiry > Date.now()) {
+      return res.status(429).json({
+        success: false,
+        message: "Too many requests. Try again later",
+      });
     }
 
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
@@ -371,7 +421,9 @@ const handleSendVerificationEmail = async (req, res) => {
       message: "Verification email sent successsfully",
     });
   } catch (err) {
-    return res.status(500).send("Internal server Error");
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server Error" });
   }
 };
 

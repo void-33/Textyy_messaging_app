@@ -1,8 +1,8 @@
 const transporter = require('./email.config');
 
 async function sendVerificationEmail(to, verificationToken){
-    const BASE_URL = process.env.BASE_URL || 'http://localhost:5000'
-    const verificationLink = `${BASE_URL}/api/auth/verify-email?token=${verificationToken}`
+    const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3001'
+    const verificationLink = `${CLIENT_URL}/email-verified?token=${verificationToken}`
   try {
     await transporter.sendMail({
       from: '"Textyy Team" <noreply@textyy.com>',

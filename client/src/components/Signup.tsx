@@ -108,8 +108,9 @@ const Signup = () => {
       if (response.data.success) {
         toast(response.data.message);
         form.reset();
+        const token = response.data.emailResendToken || 'unknown';
+        sessionStorage.setItem('EmailResendToken',token);
         setValue("logIn");
-        localStorage.setItem('email',values.email);
         navigate('/verify-email');
       }
     } catch (err: any) {

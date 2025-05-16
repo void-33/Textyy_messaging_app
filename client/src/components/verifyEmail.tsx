@@ -10,11 +10,11 @@ import {
 import axios from "axios";
 import useToast from "./ui/Toast";
 
-const COOLDOWN_SECODS = 10;
+const COOLDOWN_SECONDS = 10;
 
 const VerifyEmail = () => {
-  const [seconds, setSeconds] = useState(COOLDOWN_SECODS);
-  const email = localStorage.getItem("email");
+  const [seconds, setSeconds] = useState(COOLDOWN_SECONDS);
+  const token = sessionStorage.getItem('EmailResendToken');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const toast = useToast();
@@ -35,7 +35,7 @@ const VerifyEmail = () => {
   };
 
   const resetCountDown = () => {
-    setSeconds(COOLDOWN_SECODS);
+    setSeconds(COOLDOWN_SECONDS);
     startCountDown();
   };
 
@@ -56,7 +56,7 @@ const VerifyEmail = () => {
     try {
       const response = await axios.post(
         "http://localhost:3500/api/auth/send-verification-email",
-        { email }
+        { token }
       );
       if (response.data.success) {
         toast(response.data.message);

@@ -10,6 +10,7 @@ import FriendsSidebar from "./components/friends-sidebar";
 import AuthPage from "./pages/AuthPage";
 import PublicRoute from "./routes/PublicRoutes";
 import VerifyEmail from "./components/verifyEmail";
+import EmailVerified from "./components/emailVerified";
 
 const App = () => {
   return (
@@ -18,8 +19,9 @@ const App = () => {
         {/*if authenticated- navigate to /chats otherwise render <AuthPage/> */}
         <Route path="/" element={<PublicRoute />}>
           <Route index element={<AuthPage />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
         </Route>
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/email-verified" element={<EmailVerified />} />
 
         {/* only navigate to these routes if authenticated otherwise redirect to '/' */}
         <Route element={<PrivateRoutes />}>

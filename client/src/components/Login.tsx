@@ -39,8 +39,8 @@ const Login = () => {
   const { setIsAuthenticated } = useAuth();
 
   const setAccessToken = useAccessTokenStore((state) => state.setAccessToken);
-  const setUserId = useCurrUserState((state)=>state.setUserId);
-  const setUsername = useCurrUserState((state)=>state.setUsername);
+  const setUserId = useCurrUserState((state) => state.setUserId);
+  const setUsername = useCurrUserState((state) => state.setUsername);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,7 +49,7 @@ const Login = () => {
       password: "",
     },
   });
-  
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const body = {
       email: values.email,
@@ -72,7 +72,11 @@ const Login = () => {
       }
     } catch (err: any) {
       if (axios.isAxiosError(err)) {
-        if (err.response) toast(err.response.data.message);
+        if (err.response?.data.redirectToVerification) {
+          const token = err.response.data.emailResendToken || "unknown";
+          sessionStorage.setItem("EmailResendToken", token);
+          navigate("/verify-email");
+        } else if (err.response) toast(err.response.data.message);
         else toast("Server is down");
       } else {
         toast(err.message);
