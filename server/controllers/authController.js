@@ -75,8 +75,10 @@ const handleRegister = async (req, res) => {
       lastName: req.body.lastName,
       dateOfBirth: dob,
       emailVerificationToken: emailVerificationToken,
-      emailTokenExpiry: Date.now() + 1000 * 60 * 10, //10min
-      emailCooldownExpiry: Date.now() + 1000 * 60 * 1, //1min
+      emailTokenExpiry:
+        Date.now() + Number(process.env.EMAIL_TOKEN_EXPIRY || 1000 * 60 * 10), //10min
+      emailCooldownExpiry:
+        Date.now() + Number(process.env.EMAIL_COOLDOWN_EXPIRY || 1000 * 60 * 1), //1min
     });
 
     sendVerificationEmail(req.body.email, emailVerificationToken);
@@ -134,13 +136,16 @@ const handleLogin = async (req, res) => {
       { expiresIn: process.env.EMAIL_RESEND_TOKEN_EXPIRY }
     );
 
-    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-    foundUser.emailVerificationToken = emailVerificationToken;
-    foundUser.emailTokenExpiry = Date.now() + 1000 * 60 * 10; //10min
-    foundUser.emailCooldownExpiry = Date.now() + 1000 * 60 * 1; //1min
-    foundUser.save();
-
-    sendVerificationEmail(req.body.email, emailVerificationToken);
+    if (foundUser.emailTokenExpiry < Date.now()) {
+      const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+      foundUser.emailVerificationToken = emailVerificationToken;
+      foundUser.emailTokenExpiry =
+        Date.now() + Number(process.env.EMAIL_TOKEN_EXPIRY || 1000 * 60 * 10); //10min
+      foundUser.emailCooldownExpiry =
+        Date.now() + Number(process.env.EMAIL_COOLDOWN_EXPIRY || 1000 * 60 * 1); //1min
+      await foundUser.save();
+    }
+    sendVerificationEmail(req.body.email, foundUser.emailVerificationToken);
 
     return res.status(404).json({
       success: false,
@@ -179,6 +184,7 @@ const handleLogin = async (req, res) => {
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
+      // secure: true,  //todo: enable this in production
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -218,7 +224,7 @@ const handleLogout = async (req, res) => {
   }
 
   foundUser.refreshToken = "";
-  foundUser.save();
+  await foundUser.save();
 
   res.clearCookie("jwt", { httpOnly: true });
   res.status(200).json({ success: true, message: "Successfully logged out" });
@@ -408,14 +414,18 @@ const handleSendVerificationEmail = async (req, res) => {
       });
     }
 
-    const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-    user.emailVerificationToken = emailVerificationToken;
-    user.emailTokenExpiry = Date.now() + 1000 * 60 * 10; //10min
-    user.emailCooldownExpiry = Date.now() + 1000 * 60 * 1; //1min
+    if (user.emailTokenExpiry < Date.now()) {
+      const emailVerificationToken = crypto.randomBytes(32).toString("hex");
+      user.emailVerificationToken = emailVerificationToken;
+      user.emailTokenExpiry =
+        Date.now() + Number(process.env.EMAIL_TOKEN_EXPIRY || 1000 * 60 * 10); //10min
+      user.emailCooldownExpiry =
+        Date.now() + Number(process.env.EMAIL_COOLDOWN_EXPIRY || 1000 * 60 * 1); //1min
 
-    await user.save();
+      await user.save();
+    }
 
-    sendVerificationEmail(email, emailVerificationToken);
+    sendVerificationEmail(email, user.emailVerificationToken);
     return res.status(200).json({
       success: true,
       message: "Verification email sent successsfully",

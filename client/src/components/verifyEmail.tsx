@@ -10,7 +10,7 @@ import {
 import axios from "axios";
 import useToast from "./ui/Toast";
 
-const COOLDOWN_SECONDS = 10;
+const COOLDOWN_SECONDS = 60;
 
 const VerifyEmail = () => {
   const [seconds, setSeconds] = useState(COOLDOWN_SECONDS);
