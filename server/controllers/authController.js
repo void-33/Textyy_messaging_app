@@ -29,6 +29,7 @@ const handleRegister = async (req, res) => {
   //convert birthday string to date
   const dob = new Date(req.body.dateOfBirth);
 
+
   //ensuring provided birthday is in correct format
   if (isNaN(dob)) {
     return res
@@ -66,7 +67,7 @@ const handleRegister = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
     const emailVerificationToken = crypto.randomBytes(32).toString("hex");
-
+    
     const newUser = await User.create({
       username: req.body.username,
       password: hashedPassword,
@@ -96,9 +97,9 @@ const handleRegister = async (req, res) => {
     });
   } catch (err) {
     //handle validation error(for email)
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ success: false, message: err.message });
-    }
+    // if (err.name === "ValidationError") {
+    //   return res.status(400).json({ success: false, message: err.message });
+    // }
     //handle rest of the generic error
     return res
       .status(500)
@@ -337,6 +338,7 @@ const handleEmailVerification = async (req, res) => {
   const { token } = req.query;
   try {
     const user = await User.findOne({ emailVerificationToken: token });
+
 
     if (!token) {
       return res

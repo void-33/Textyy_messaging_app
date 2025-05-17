@@ -45,6 +45,11 @@ const createGroup = async (req, res) => {
     const currUser = await User.findById(currUserId);
     const currFriends = currUser.friends.map(String);
 
+    //check if group name exists
+    if(!req.body.name){
+      return res.status(400).json({success:false, message:'Group Name cannot be empty'});
+    }
+
     // Check if all members are friends
     for (const member of members) {
       if (!currFriends.includes(member._id)) {
@@ -57,6 +62,10 @@ const createGroup = async (req, res) => {
 
     // Avoid duplicates and ensure the current user is in the list
     const uniqueMembers = Array.from(new Set([...members, currUserId]));
+
+    if(uniqueMembers.length<2){
+      return res.status(400).json({success:false, message: "There must be atleast 2 members"});
+    }    
 
     const room = await Room.create({
       name: req.body.name,

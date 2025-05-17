@@ -1,11 +1,17 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const EmailVerified = () => {
   const [message, setMessage] = useState("Verifying your email...");
   const [error, setError] = useState(false);
 
+  const hasRun = useRef(false);
+
+
   useEffect(() => {
+    if(hasRun.current) return;
+    hasRun.current = true;
+    
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
 
