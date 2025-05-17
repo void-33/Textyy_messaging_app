@@ -54,6 +54,7 @@ export function ChatSidebar() {
   const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+
   const joinRooms = (roomcard: RoomCardType[]) => {
     const socket = getSocket();
     roomcard.forEach((card) => {
@@ -107,7 +108,7 @@ export function ChatSidebar() {
       };
       fetchRoomcardbyId();
     }
-  }, [roomId, roomCards]);
+  }, [roomId]);
 
   const handleCardSelection = (card: RoomCardType) => {
     // if (!card.isGroup) navigate(`/chats/${card.otherUser.username}`);

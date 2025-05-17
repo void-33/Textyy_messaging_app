@@ -2,11 +2,12 @@ import { useAuth } from "@/contexts/authContext";
 // import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
 import useAccessTokenStore from "@/stores/accessTokenStore";
 import axios, { AxiosRequestConfig } from "axios";
-import { toast } from "sonner";
+import useToast from "@/components/ui/Toast";
 
 const API_BASE = "http://localhost:3500";
 
 const useProtectedFetch = () => {
+  const toast = useToast();
   const { logout } = useAuth();
 
   const getAccessToken = useAccessTokenStore((state)=>state.getAccessToken)
@@ -39,14 +40,7 @@ const useProtectedFetch = () => {
       try {
         accessToken = await refreshToken();
       } catch (err) {
-        const toastId = toast("Error", {
-          description:
-            "Access token missing and refresh failed.Redirecting to login...",
-          action: {
-            label: "Close",
-            onClick: () => toast.dismiss(toastId),
-          },
-        });
+        toast("Access token missing and refresh failed.Redirecting to login...");
 
         logout();
       }
@@ -87,13 +81,7 @@ const useProtectedFetch = () => {
 
           return retryResponse;
         } catch (refreshErr) {
-          const toastId = toast("Error", {
-            description: "Token refresh failed, redirecting to login...",
-            action: {
-              label: "Close",
-              onClick: () => toast.dismiss(toastId),
-            },
-          });
+          toast("Token refresh failed, redirecting to login...");
           //? handle logout
           logout();
           return;
@@ -101,12 +89,7 @@ const useProtectedFetch = () => {
       }
 
       //? handle other errors
-      const toastId = toast(err.response.data.message || "Some Error occured", {
-        action: {
-          label: "Close",
-          onClick: () => toast.dismiss(toastId),
-        },
-      });
+      toast(err.response.data.message || "Some Error occured");
     }
   };
 

@@ -1,5 +1,6 @@
 const Room = require("../models/roomModel");
 const RoomCard = require("../models/roomCardModel");
+const { default: mongoose } = require("mongoose");
 
 // GET /api/roomcards/getroomcards
 const getUserRoomCards = async (req, res) => {
@@ -60,7 +61,12 @@ const getUserRoomCards = async (req, res) => {
 const getRoomCardbyId = async (req, res) => {
   const { roomId } = req.params;
   const currUserId = req.userId;
+
   try {
+    if(!mongoose.Types.ObjectId.isValid(roomId)){
+      return res.status(404).json({ success: false, message: "No such user" }); 
+    }
+
     const roomCard = await RoomCard.findOne({ roomId })
       .populate("members", "_id username")
       .populate("roomId", "_id name");

@@ -1,12 +1,19 @@
 const Room = require("../models/roomModel");
 const RoomCard = require("../models/roomCardModel");
 const User = require("../models/userModel");
+const { default: mongoose } = require("mongoose");
 
 //GET /api/rooms/getbyid/:roomId
 const getRoomById = async (req, res) => {
+
   const currUserId = req.userId;
   const { roomId } = req.params;
   try {
+
+    if (!mongoose.Types.ObjectId.isValid(roomId)) {
+      return res.status(400).json({ success: false, message: "No such room" });
+    }
+    
     const room = await Room.findById(roomId).populate(
       "members",
       "_id username"
@@ -46,8 +53,8 @@ const createGroup = async (req, res) => {
     const currFriends = currUser.friends.map(String);
 
     //check if group name exists
-    if(!req.body.name){
-      return res.status(400).json({success:false, message:'Group Name cannot be empty'});
+    if (!req.body.name) {
+      return res.status(400).json({ success: false, message: 'Group Name cannot be empty' });
     }
 
     // Check if all members are friends
@@ -63,9 +70,9 @@ const createGroup = async (req, res) => {
     // Avoid duplicates and ensure the current user is in the list
     const uniqueMembers = Array.from(new Set([...members, currUserId]));
 
-    if(uniqueMembers.length<2){
-      return res.status(400).json({success:false, message: "There must be atleast 2 members"});
-    }    
+    if (uniqueMembers.length < 2) {
+      return res.status(400).json({ success: false, message: "There must be atleast 2 members" });
+    }
 
     const room = await Room.create({
       name: req.body.name,

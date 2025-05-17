@@ -82,6 +82,8 @@ export function ChatInterface() {
           "GET"
         );
         const roomObj: RoomType = response?.data.roomObj;
+        if(!roomObj) return;
+
         setSelectedRoom(roomObj);
 
         if (messageCount) return;
