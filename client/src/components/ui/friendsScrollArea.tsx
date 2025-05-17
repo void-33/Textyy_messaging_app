@@ -9,16 +9,19 @@ interface UserType {
   username: string;
 }
 
-interface FriendsScrollAreaProps{
+interface FriendsScrollAreaProps {
   queuedToAdd: UserType[];
   setQueuedToAdd: React.Dispatch<React.SetStateAction<UserType[]>>;
 }
 
-const FriendsScrollArea = ({queuedToAdd,setQueuedToAdd}: FriendsScrollAreaProps) => {
+const FriendsScrollArea = ({
+  queuedToAdd,
+  setQueuedToAdd,
+}: FriendsScrollAreaProps) => {
   const [friends, setfriends] = useState<UserType[]>([]);
 
   const protectedFetch = useProtectedFetch();
-  
+
   useEffect(() => {
     const fetchFriends = async () => {
       const response = await protectedFetch("/api/user/getFriends", "GET");
@@ -27,7 +30,7 @@ const FriendsScrollArea = ({queuedToAdd,setQueuedToAdd}: FriendsScrollAreaProps)
       }
     };
     fetchFriends();
-  }, []);
+  }, [protectedFetch]);
 
   const AddToQueue = (u: UserType) => {
     setQueuedToAdd((prev) => {
@@ -40,7 +43,10 @@ const FriendsScrollArea = ({queuedToAdd,setQueuedToAdd}: FriendsScrollAreaProps)
     <>
       <div className="flex flex-row gap-1 flex-wrap">
         {queuedToAdd.map((q) => (
-          <div key={q._id} className="flex flex-row justify-between w-fit items-center border-2 border-secondary rounded-xl p-1 text-sm">
+          <div
+            key={q._id}
+            className="flex flex-row justify-between w-fit items-center border-2 border-secondary rounded-xl p-1 text-sm"
+          >
             {q.username}
             <X
               onClick={() =>
@@ -58,7 +64,7 @@ const FriendsScrollArea = ({queuedToAdd,setQueuedToAdd}: FriendsScrollAreaProps)
               <button
                 className="text-base hover:bg-secondary w-full rounded-xl h-12 hover:cursor-pointer"
                 key={u._id}
-                onClick={()=>AddToQueue(u)}
+                onClick={() => AddToQueue(u)}
               >
                 {u.username}
               </button>

@@ -1,8 +1,8 @@
 import { useAuth } from "@/contexts/authContext";
-// import { getAccessToken, setAccessToken } from "@/contexts/accessToken";
 import useAccessTokenStore from "@/stores/accessTokenStore";
 import axios, { AxiosRequestConfig } from "axios";
 import useToast from "@/components/ui/Toast";
+import { useCallback } from "react";
 
 const API_BASE = "http://localhost:3500";
 
@@ -10,10 +10,10 @@ const useProtectedFetch = () => {
   const toast = useToast();
   const { logout } = useAuth();
 
-  const getAccessToken = useAccessTokenStore((state)=>state.getAccessToken)
-  const setAccessToken = useAccessTokenStore((state)=>state.setAccessToken)
+  const getAccessToken = useAccessTokenStore((state) => state.getAccessToken);
+  const setAccessToken = useAccessTokenStore((state) => state.setAccessToken);
 
-  const refreshToken = async () => {
+  const refreshToken = useCallback(async () => {
     try {
       const res = await axios.get("http://localhost:3500/api/auth/newtoken", {
         withCredentials: true,
@@ -23,15 +23,15 @@ const useProtectedFetch = () => {
       }
       setAccessToken(res.data.accessToken);
       return res.data.accessToken;
-    } catch (err) {
+    } catch {
       throw new Error("TOKEN_REFRESH_FAILED");
     }
-  };
+  },[setAccessToken])
 
-  const protectedFetch = async (
+  const protectedFetch = useCallback(async (
     url: string,
     method: string,
-    data: Record<string, any> = {},
+    data: AxiosRequestConfig["data"] = {},
     optional: AxiosRequestConfig = {}
   ) => {
     let accessToken = getAccessToken();
@@ -39,8 +39,10 @@ const useProtectedFetch = () => {
     if (!accessToken) {
       try {
         accessToken = await refreshToken();
-      } catch (err) {
-        toast("Access token missing and refresh failed.Redirecting to login...");
+      } catch {
+        toast(
+          "Access token missing and refresh failed.Redirecting to login..."
+        );
 
         logout();
       }
@@ -60,7 +62,7 @@ const useProtectedFetch = () => {
       });
 
       return response;
-    } catch (err: any) {
+    } catch (err) {
       if (
         axios.isAxiosError(err) &&
         (err.response?.status === 401 || err.response?.status === 403)
@@ -80,7 +82,7 @@ const useProtectedFetch = () => {
           });
 
           return retryResponse;
-        } catch (refreshErr) {
+        } catch {
           toast("Token refresh failed, redirecting to login...");
           //? handle logout
           logout();
@@ -89,9 +91,13 @@ const useProtectedFetch = () => {
       }
 
       //? handle other errors
-      toast(err.response.data.message || "Some Error occured");
+      if (axios.isAxiosError(err)) {
+        toast(err.response?.data?.message || "Some error occurred");
+      } else {
+        toast("An unexpected error occurred");
+      }
     }
-  };
+  },[getAccessToken,logout,refreshToken,toast])
 
   return protectedFetch;
 };

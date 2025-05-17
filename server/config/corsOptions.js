@@ -9,7 +9,6 @@ const expressCorsOptions = {
         else callback(new Error('Not allowed by CORS'),false);
     },
     credentials: true,
-
 }
 
 const socketCorsOptions = {

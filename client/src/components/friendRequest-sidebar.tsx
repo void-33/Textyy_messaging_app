@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import UserSearch from "@/components/user-search";
 import { toast } from "sonner";
 
@@ -25,7 +25,7 @@ const FriendRequest = () => {
 
   const protectedFetch = useProtectedFetch();
 
-  const fetchFriendReq =async ()=>{
+  const fetchFriendReq = useCallback(async () => {
     const friendReqRes = await protectedFetch(
       "/api/friendrequest/getpending",
       "GET"
@@ -33,11 +33,11 @@ const FriendRequest = () => {
     if (friendReqRes?.data) {
       setReceivedFriendRequests(friendReqRes?.data.receivedFriendRequests);
     }
-  };
+  }, [protectedFetch]);
 
   useEffect(() => {
     fetchFriendReq();
-  }, []);
+  }, [fetchFriendReq]);
 
   const acceptFriendRequest = async (requestId: string) => {
     setAcceptingRequest((prev) => [...prev, requestId]);
@@ -92,7 +92,9 @@ const FriendRequest = () => {
       </CardHeader>
 
       <CardContent className="grow px-2 flex flex-col overflow-hidden">
-        {searchQuery.trim().length > 0 ? <UserSearch searchQuery={searchQuery} /> : (
+        {searchQuery.trim().length > 0 ? (
+          <UserSearch searchQuery={searchQuery} />
+        ) : (
           <div className="grow flex flex-col overflow-auto">
             <h4 className="shrink-0 scroll-m-20 text-sm font-normal tracking-tight lg:text-sm text-gray-500">
               All Recieved Requests

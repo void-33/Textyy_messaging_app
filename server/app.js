@@ -6,9 +6,6 @@ const cors = require('cors');
 const {expressCorsOptions} = require('./config/corsOptions');
 const cookieParser = require('cookie-parser');
 
-
-const {join} = require('node:path');
-
 const limiter = rateLimit({
     limit: 3000,
     windowMs: 60 * 60 * 1000, //1hr
@@ -18,7 +15,7 @@ const limiter = rateLimit({
 const app = express();
 
 //? other middlewares are to be used
-app.use(helmet());
+// app.use(helmet());
 app.use(limiter);
 app.use(cors(expressCorsOptions));
 

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import clsx from "clsx";
 
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useChatStore } from "@/stores/chatStore";
 import UserSearch from "./user-search";
@@ -55,14 +55,14 @@ export function ChatSidebar() {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
 
-  const joinRooms = (roomcard: RoomCardType[]) => {
+  const joinRooms = useCallback((roomcard: RoomCardType[]) => {
     const socket = getSocket();
     roomcard.forEach((card) => {
       socket.emit("joinRoom", card.roomId._id);
     });
-  };
+  },[getSocket])
 
-  const fetchRoomCards = async () => {
+  const fetchRoomCards = useCallback(async () => {
     const response = await protectedFetch("/api/roomcards/getroomcards", "GET");
     const newCards: RoomCardType[] = response?.data.roomCards || [];
 
@@ -73,11 +73,11 @@ export function ChatSidebar() {
     });
 
     joinRooms(newCards);
-  };
+  },[joinRooms,protectedFetch])
 
   useEffect(() => {
     fetchRoomCards();
-  }, [getSocket, messagesByRoom]);
+  }, [getSocket, messagesByRoom, fetchRoomCards]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -108,7 +108,7 @@ export function ChatSidebar() {
       };
       fetchRoomcardbyId();
     }
-  }, [roomId]);
+  }, [roomId,getSocket,navigate,protectedFetch,roomCards]);
 
   const handleCardSelection = (card: RoomCardType) => {
     // if (!card.isGroup) navigate(`/chats/${card.otherUser.username}`);

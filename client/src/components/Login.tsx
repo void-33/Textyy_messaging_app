@@ -70,7 +70,7 @@ const Login = () => {
         setUsername(response.data.user.username);
         navigate("/chats");
       }
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response?.data.redirectToVerification) {
           const token = err.response.data.emailResendToken || "unknown";
@@ -79,7 +79,8 @@ const Login = () => {
         } else if (err.response) toast(err.response.data.message);
         else toast("Server is down");
       } else {
-        toast(err.message);
+        if (err instanceof Error) toast(err.message);
+        else toast("An unknown Error occured");
       }
     }
   };

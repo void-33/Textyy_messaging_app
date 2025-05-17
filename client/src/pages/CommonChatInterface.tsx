@@ -12,7 +12,7 @@ const CommonChatInterface = () => {
         style={
           {
             "--sidebar-width": "20vw",
-          } as React.CSSProperties as React.CSSProperties & Record<string, any>
+          } as React.CSSProperties & { [key: string]: string }
         }
       >
         <ChatInterface />

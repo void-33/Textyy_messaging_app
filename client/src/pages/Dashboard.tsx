@@ -6,6 +6,15 @@ import { useEffect } from "react";
 import useSocketStore from "@/stores/socketStore";
 import { useChatStore } from "@/stores/chatStore";
 
+interface Message {
+  _id: string;
+  sender: string;
+  roomId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const Dashboard = () => {
   const { addMessage } = useChatStore((state) => state);
 
@@ -21,7 +30,7 @@ const Dashboard = () => {
       socket.emit("register"); //? off?
     });
 
-    socket.on("message", (roomId:string,message: any) => {
+    socket.on("message", (roomId:string,message: Message) => {
       addMessage(roomId,message);
     });
 
@@ -29,7 +38,7 @@ const Dashboard = () => {
       socket.off('message');
       disconnectSocket();
     };
-  }, []);
+  }, [addMessage,disconnectSocket,getSocket,initSocket]);
 
   return (
     <div className="flex h-[100vh]">
@@ -38,8 +47,8 @@ const Dashboard = () => {
         className="w-fit"
         style={
           {
-            "--sidebar-width": "10vw",
-          } as React.CSSProperties as React.CSSProperties & Record<string, any>
+            "--sidebar-width": "20vw",
+          } as React.CSSProperties & { [key: string]: string }
         }
       >
         <AppSidebar />

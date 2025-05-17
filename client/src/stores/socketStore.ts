@@ -12,7 +12,7 @@ interface SocketState {
 const useSocketStore = create<SocketState>((set, get) => ({
   socket: undefined,
   initSocket: (url = "http://localhost:3500", force = false) => {
-    let accessToken = useAccessTokenStore.getState().getAccessToken();
+    const accessToken = useAccessTokenStore.getState().getAccessToken();
     let existingSocket = get().socket;
     if (!existingSocket || force) {
       if (existingSocket) {
@@ -39,7 +39,7 @@ const useSocketStore = create<SocketState>((set, get) => ({
     return existingSocket;
   },
   disconnectSocket: () => {
-    let existingSocket = get().socket;
+    const existingSocket = get().socket;
     if (existingSocket) {
       existingSocket.disconnect();
       set({ socket: undefined });

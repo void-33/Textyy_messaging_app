@@ -33,7 +33,7 @@ const EmailVerified = () => {
           setMessage("Verification failed. Please try again.");
           setError(true);
         }
-      } catch (err:any) {
+      } catch (err) {
         // If backend sends error with text in response.data
         if (axios.isAxiosError(err)) {
           setMessage(err.response?.data.message);

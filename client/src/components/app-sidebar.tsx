@@ -50,7 +50,9 @@ export function AppSidebar() {
   const getTargetPath = (base: string) => {
     const pathParts = location.pathname.split("/").filter(Boolean);
     const roomId =
-      pathParts[1] === "chats" || "friends" || "friendrequest"
+      pathParts[1] === "chats" ||
+      pathParts[1] === "friends" ||
+      pathParts[1] === "friendrequest"
         ? pathParts[1]
         : null;
     return roomId ? `/${base}/${roomId}` : `/${base}`;
@@ -59,9 +61,13 @@ export function AppSidebar() {
   const toggleTheme = () => {
     const html = document.documentElement;
     html.classList.toggle("dark");
-    theme === "dark" ? setTheme("light") : setTheme("dark");
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
   };
-  const [theme, setTheme] = useState<String>("light");
+  const [theme, setTheme] = useState<string>("light");
 
   return (
     <Sidebar collapsible="icon" variant="floating" side="left">

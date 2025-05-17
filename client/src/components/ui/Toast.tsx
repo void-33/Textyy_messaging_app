@@ -1,9 +1,10 @@
+import { useCallback } from "react";
 import { toast } from "sonner";
 
 const activeToasts = new Set<string>();
 
 const useToast = () => {
-  return (message: string, description: string = '') => {
+  return useCallback((message: string, description: string = '') => {
     if (activeToasts.has(message)) return
     activeToasts.add(message);
 
@@ -20,7 +21,7 @@ const useToast = () => {
         activeToasts.delete(message);
       },
     });
-  };
+  },[])
 };
 
 export default useToast;

@@ -34,7 +34,7 @@ const FriendsSidebar = () => {
       }
     };
     fetchFriends();
-  }, []);
+  }, [protectedFetch]);
 
   const unfriendUser = async (userId: string) => {
     setunfriendingIds((prev) => [...prev, userId]);

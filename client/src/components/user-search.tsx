@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { Card } from "@/components/ui/card";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -50,7 +50,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const fetchFriendRequestsAndFriends = async () => {
+  const fetchFriendRequestsAndFriends = useCallback(async () => {
     const friendReqRes = await protectedFetch(
       "/api/friendrequest/getpending",
       "GET"
@@ -63,11 +63,11 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
     if (friendRes?.data) {
       setFriends(friendRes?.data.friendsWithRoom);
     }
-  };
+  },[protectedFetch])
 
   useEffect(() => {
     fetchFriendRequestsAndFriends();
-  }, []);
+  }, [fetchFriendRequestsAndFriends]);
 
   useEffect(() => {
     const timeout = setTimeout(async () => {
@@ -85,7 +85,7 @@ const UserSearch = ({ searchQuery }: UserSearchProps) => {
     }, 300); // Debounce input
 
     return () => clearTimeout(timeout);
-  }, [searchQuery]);
+  }, [searchQuery,protectedFetch]);
 
   const sendFriendRequest = async (toUserId: string) => {
     setSendingRequestTo((prev) => [...prev, toUserId]);

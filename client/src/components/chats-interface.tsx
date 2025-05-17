@@ -58,9 +58,9 @@ const icons = [
 export function ChatInterface() {
   const protectedFetch = useProtectedFetch();
   const { roomId } = useParams();
-  
-  const selectedRoom = useSelectedRoomState((state)=>state.room);
-  const setSelectedRoom = useSelectedRoomState((state)=>state.setRoom);
+
+  const selectedRoom = useSelectedRoomState((state) => state.room);
+  const setSelectedRoom = useSelectedRoomState((state) => state.setRoom);
 
   const setMessages = useChatStore((state) => state.setMessages);
   const messagesByRoom = useChatStore((state) => state.messagesByRoom);
@@ -82,7 +82,7 @@ export function ChatInterface() {
           "GET"
         );
         const roomObj: RoomType = response?.data.roomObj;
-        if(!roomObj) return;
+        if (!roomObj) return;
 
         setSelectedRoom(roomObj);
 
@@ -96,7 +96,7 @@ export function ChatInterface() {
       };
       fetch();
     }
-  }, [roomId]);
+  }, [roomId, messageCount, protectedFetch, setMessages, setSelectedRoom]);
 
   useEffect(() => {
     if (messagesEndRef.current && messageCount) {

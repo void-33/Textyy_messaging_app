@@ -14,13 +14,13 @@ const COOLDOWN_SECONDS = 60;
 
 const VerifyEmail = () => {
   const [seconds, setSeconds] = useState(COOLDOWN_SECONDS);
-  const token = sessionStorage.getItem('EmailResendToken');
+  const token = sessionStorage.getItem("EmailResendToken");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const toast = useToast();
 
   const startCountDown = () => {
-    if(intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     intervalRef.current = setInterval(() => {
       setSeconds((prev) => {
@@ -43,11 +43,11 @@ const VerifyEmail = () => {
 
   useEffect(() => {
     startCountDown();
-    return ()=>{
-        if(intervalRef.current){
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
-        }
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
   }, []);
 
@@ -63,12 +63,13 @@ const VerifyEmail = () => {
         resetCountDown();
         // navigate("/", { replace: true });
       }
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) toast(err.response.data.message);
         else toast("Server is down");
       } else {
-        toast(err.message);
+        if (err instanceof Error) toast(err.message);
+        else toast("An unknown Error Occured");
       }
     }
   };

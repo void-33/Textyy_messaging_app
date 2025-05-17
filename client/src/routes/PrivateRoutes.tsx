@@ -11,7 +11,7 @@ const PrivateRoutes = () => {
       setLoading(false);
     };
     verify();
-  }, []);
+  }, [checkAuth, isAuthenticated]);
   if (loading) return <div>Loading </div>;
   return isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };

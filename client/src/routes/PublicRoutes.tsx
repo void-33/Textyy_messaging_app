@@ -12,7 +12,7 @@ const PublicRoute = () => {
       setLoading(false);
     };
     verify();
-  }, []);
+  }, [checkAuth]);
 
   if (loading) return <div>Loading...</div>;
 

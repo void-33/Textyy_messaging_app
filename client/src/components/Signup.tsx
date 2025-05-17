@@ -108,17 +108,18 @@ const Signup = () => {
       if (response.data.success) {
         toast(response.data.message);
         form.reset();
-        const token = response.data.emailResendToken || 'unknown';
-        sessionStorage.setItem('EmailResendToken',token);
+        const token = response.data.emailResendToken || "unknown";
+        sessionStorage.setItem("EmailResendToken", token);
         setValue("logIn");
-        navigate('/verify-email');
+        navigate("/verify-email");
       }
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err)) {
         if (err.response) toast(err.response.data.message);
         else toast("Server is down");
       } else {
-        toast(err.message);
+        if (err instanceof Error) toast(err.message);
+        else toast("An unknown error occured");
       }
     }
   };

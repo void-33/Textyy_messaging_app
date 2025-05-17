@@ -11,9 +11,9 @@ const getRoomById = async (req, res) => {
   try {
 
     if (!mongoose.Types.ObjectId.isValid(roomId)) {
-      return res.status(400).json({ success: false, message: "No such room" });
+      return res.status(404).json({ success: false, message: "No such room" });
     }
-    
+
     const room = await Room.findById(roomId).populate(
       "members",
       "_id username"
