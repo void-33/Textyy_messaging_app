@@ -2,10 +2,10 @@ const Room = require("../models/roomModel");
 const RoomCard = require("../models/roomCardModel");
 const User = require("../models/userModel");
 const { default: mongoose } = require("mongoose");
+const messageModel = require("../models/messageModel");
 
 //GET /api/rooms/getbyid/:roomId
 const getRoomById = async (req, res) => {
-
   const currUserId = req.userId;
   const { roomId } = req.params;
   try {
@@ -125,4 +125,38 @@ const renameGroup = async (req, res) => {
   }
 };
 
-module.exports = { getRoomById, createGroup, renameGroup };
+//DELETE /api/rooms/delete/:groupId
+const deleteGroup = async (req, res) => {
+  const {groupId} = req.params;
+  const currUserId = req.userId;
+  try {
+    if (!groupId) {
+      return res.status(404).json({ success: false, message: 'Group Id is required' });
+    }
+    if (!mongoose.isValidObjectId(groupId)) {
+      return res.status(400).json({ success: false, message: 'Group Id is not valid' })
+    }
+
+    const group = await Room.findById(groupId);
+
+    if (!group) {
+      return res.status(400).json({ success: false, message: 'Group does not exist' })
+    }
+
+    if (!group.admin.includes(currUserId)) {
+      return res.status(403).json({ success: false, message: 'Not authorized' })
+    }
+
+    await messageModel.deleteMany({ roomId: groupId });
+    await RoomCard.deleteOne({roomId:groupId});
+    await group.deleteOne();
+
+    return res.status(200).json({ success: true, message: 'Group successfully deleted', group });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+}
+
+module.exports = { getRoomById, createGroup, renameGroup, deleteGroup };

@@ -17,6 +17,7 @@ import { RoomType } from "@/utils/types";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
 import useToast from "../ui/Toast";
 import useSelectedRoomState from "@/stores/selectedRoomStore";
+import useRoomCardState from "@/stores/roomCardSrore";
 
 type GroupRenameButtonProps = {
   currRoom: RoomType | null;
@@ -27,6 +28,7 @@ const GroupRenameButton = ({ currRoom }: GroupRenameButtonProps) => {
   const protectedFetch = useProtectedFetch();
   const toast = useToast();
   const setSelectedRoom = useSelectedRoomState((state) => state.setRoom);
+  const renameRoomCard = useRoomCardState((state)=>state.renameRoomCard);
 
   const handleSubmit = async () => {
     const roomId = currRoom?._id;
@@ -37,9 +39,10 @@ const GroupRenameButton = ({ currRoom }: GroupRenameButtonProps) => {
     if (roomId) {
       const response = await protectedFetch("/api/rooms/rename", "PATCH", body);
       if (response?.data.success) {
+        renameRoomCard(currRoom._id,inputText);
+        setSelectedRoom(response.data.room);
         setInputText("");
         toast("Group Successfully renamed");
-        setSelectedRoom(response.data.room);
       }
     }
   };

@@ -25,7 +25,7 @@ const App = () => {
 
         {/* only navigate to these routes if authenticated otherwise redirect to '/' */}
         <Route element={<PrivateRoutes />}>
-          <Route path="/" element={<Dashboard />}>
+          <Route path="" element={<Dashboard />}>
             <Route path="" element={<CommonChatInterface />}>
               <Route path="chats" element={<ChatSidebar />} />
               <Route path="chats/:roomId" element={<ChatSidebar />} />

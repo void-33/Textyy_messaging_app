@@ -8,6 +8,7 @@ import { AccordianItem, AccButton, AccContent } from "./ui/custom-accordion";
 import GroupRenameButton from "./chat-settings/renameGroup";
 
 import { RoomType } from "@/utils/types";
+import GroupDeleteButton from "./chat-settings/deleteGroup";
 
 type ChatSettingsProps = {
   currRoom: RoomType | null;
@@ -34,7 +35,8 @@ export function ChatSettings({ currRoom }: ChatSettingsProps) {
           <AccordianItem>
             <AccButton>Group Settings</AccButton>
             <AccContent>
-              <GroupRenameButton currRoom={currRoom}/>
+              <GroupRenameButton currRoom={currRoom} />
+              <GroupDeleteButton currRoom={currRoom} />
             </AccContent>
           </AccordianItem>
 

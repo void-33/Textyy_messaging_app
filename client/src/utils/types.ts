@@ -18,3 +18,23 @@ export type GroupRoomType = {
 };
 
 export type RoomType = PrivateRoomType | GroupRoomType;
+
+export type DMRoomCardType = {
+  _id: string;
+  name: string;
+  isGroup: false;
+  roomId: RoomType;
+  otherUser: UserType;
+  lastMessage: string;
+  lastMessageAt: Date;
+};
+export type GroupRoomCardType = {
+  _id: string;
+  name: string;
+  isGroup: true;
+  roomId: RoomType;
+  lastMessage: string;
+  lastMessageAt: Date;
+};
+
+export type RoomCardType = DMRoomCardType | GroupRoomCardType;

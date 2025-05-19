@@ -13,35 +13,14 @@ import { Dialog, DialogTrigger } from "./ui/dialog";
 
 import useSocketStore from "@/stores/socketStore";
 import useToast from "./ui/Toast";
+import useRoomCardState from "@/stores/roomCardSrore";
+
+import { RoomCardType } from "@/utils/types";
 
 interface UserType {
   _id: string;
   username: string;
 }
-interface RoomType {
-  _id: string;
-  name: string;
-}
-
-type DMRoomCardType = {
-  _id: string;
-  name: string;
-  isGroup: false;
-  roomId: RoomType;
-  otherUser: UserType;
-  lastMessage: string;
-  lastMessageAt: Date;
-};
-type GroupRoomCardType = {
-  _id: string;
-  name: string;
-  isGroup: true;
-  roomId: RoomType;
-  lastMessage: string;
-  lastMessageAt: Date;
-};
-
-type RoomCardType = DMRoomCardType | GroupRoomCardType;
 
 export function ChatSidebar() {
   const protectedFetch = useProtectedFetch();
@@ -51,40 +30,49 @@ export function ChatSidebar() {
   const navigate = useNavigate();
   const { roomId } = useParams();
 
-  const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
+  // const [roomCards, setRoomCards] = useState<RoomCardType[]>([]);
+  const roomCards = useRoomCardState((state) => state.roomCards);
+  const setRoomCards = useRoomCardState((state) => state.setRoomCards);
+  const recentlyDeletedRoomId = useRoomCardState(
+    (state) => state.recentlyDeletedRoomId
+  );
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-
-  const joinRooms = useCallback((roomcard: RoomCardType[]) => {
-    const socket = getSocket();
-    roomcard.forEach((card) => {
-      socket.emit("joinRoom", card.roomId._id);
-    });
-  },[getSocket])
+  const joinRooms = useCallback(
+    (roomcard: RoomCardType[]) => {
+      const socket = getSocket();
+      roomcard.forEach((card) => {
+        socket.emit("joinRoom", card.roomId._id);
+      });
+    },
+    [getSocket]
+  );
 
   const fetchRoomCards = useCallback(async () => {
     const response = await protectedFetch("/api/roomcards/getroomcards", "GET");
     const newCards: RoomCardType[] = response?.data.roomCards || [];
 
     setRoomCards((prevRoomCards) => {
-      const newCardIds = new Set(newCards.map((card)=>card._id));
-      const tempCards = prevRoomCards.filter((card) => !newCardIds.has(card._id));
+      const newCardIds = new Set(newCards.map((card) => card._id));
+      const tempCards = prevRoomCards.filter(
+        (card) => !newCardIds.has(card._id)
+      );
       return [...tempCards, ...newCards];
     });
 
     joinRooms(newCards);
-  },[joinRooms,protectedFetch])
+  }, [joinRooms, protectedFetch, setRoomCards]);
 
   useEffect(() => {
     fetchRoomCards();
   }, [getSocket, messagesByRoom, fetchRoomCards]);
 
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || roomId === recentlyDeletedRoomId) return;
 
     const roomCardExists = roomCards.some((card) => card.roomId._id === roomId);
 
-    if(!roomCardExists){
+    if (!roomCardExists) {
       const fetchRoomcardbyId = async () => {
         const response = await protectedFetch(
           `/api/roomcards/getbyid/${roomId}`,
@@ -101,18 +89,27 @@ export function ChatSidebar() {
             return [newRoomCard, ...prevRoomCards];
           });
           const socket = getSocket();
-          socket.emit('joinRoom',newRoomCard.roomId._id)
+          socket.emit("joinRoom", newRoomCard.roomId._id);
         } else {
           navigate("/chats");
         }
       };
       fetchRoomcardbyId();
     }
-  }, [roomId,getSocket,navigate,protectedFetch,roomCards]);
+  }, [
+    roomId,
+    getSocket,
+    navigate,
+    protectedFetch,
+    roomCards,
+    setRoomCards,
+    recentlyDeletedRoomId,
+  ]);
 
   const handleCardSelection = (card: RoomCardType) => {
     // if (!card.isGroup) navigate(`/chats/${card.otherUser.username}`);
     // else navigate(`/chats/${card.name}`);
+
     navigate(`/chats/${card.roomId._id}`);
   };
 
@@ -127,7 +124,7 @@ export function ChatSidebar() {
       const room = response?.data.room;
       toast("Group creation successfull");
       await fetchRoomCards();
-      navigate(`/chats/${room._id}`)
+      navigate(`/chats/${room._id}`);
     }
   };
 
