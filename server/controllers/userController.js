@@ -118,11 +118,6 @@ const unfriendUser = async (req, res) => {
       members: { $all: [req.userId, otherUserId], $size: 2 },
     });
 
-    await Room.findOneAndDelete({
-      isGroup: false,
-      members: { $all: [req.userId, otherUserId], $size: 2 },
-    });
-
     return res
       .status(200)
       .json({ success: true, message: "Unfriended successfully" });

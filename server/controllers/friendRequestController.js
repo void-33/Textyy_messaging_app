@@ -2,6 +2,7 @@ const User = require("../models/userModel");
 const FriendRequest = require("../models/friendRequestModel");
 const Room = require('../models/roomModel');
 const RoomCard = require('../models/roomCardModel');
+const messageModel = require("../models/messageModel");
 
 //function to send frined request
 //expected req.body = toUserId
@@ -59,7 +60,7 @@ const sendFriendRequest = async (req, res) => {
 
     return res
       .status(201)
-      .json({ success: true, message: "Friend request sent successfully", requestId:newRequest._id });
+      .json({ success: true, message: "Friend request sent successfully", requestId: newRequest._id });
   } catch (err) {
     return res
       .status(500)
@@ -99,16 +100,31 @@ const acceptFriendRequest = async (req, res) => {
     friendRequest.status = "accepted";
     await friendRequest.save();
 
-    const room = await Room.create({
-      name:  [currUserId,otherUserId].sort().join("_"),
-      isGroup:false,
-      members: [currUserId,otherUserId],
+    let room = await Room.findOne({
+      isGroup: false,
+      members: { $all: [currUserId, otherUserId] }
     })
-    
+
+    let lastMessage = '';
+    let lastMessageAt = undefined;
+    if (!room) {
+      room = await Room.create({
+        name: [currUserId, otherUserId].sort().join("_"),
+        isGroup: false,
+        members: [currUserId, otherUserId],
+      })
+    } else {
+      const message = await messageModel.findOne({ roomId: room._id }).sort({ createdAt: -1 })
+      lastMessage = message.content;
+      lastMessageAt = message.updatedAt;
+    }
+
     await RoomCard.create({
-      isGroup:false,
+      isGroup: false,
       roomId: room._id,
-      members: [currUserId,otherUserId],
+      members: [currUserId, otherUserId],
+      lastMessage: lastMessage,
+      lastMessageAt: lastMessageAt,
     })
 
     return res

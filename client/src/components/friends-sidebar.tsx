@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import UserSearch from "@/components/user-search";
+import useRoomCardState from "@/stores/roomCardSrore";
 
 interface FriendType {
   _id: string;
@@ -16,6 +17,7 @@ interface FriendType {
 const FriendsSidebar = () => {
   const protectedFetch = useProtectedFetch();
   const navigate = useNavigate();
+  const deleteRoomCard = useRoomCardState((state)=>state.deleteRoomCard);
 
   const [friends, setFriends] = useState<FriendType[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -36,10 +38,9 @@ const FriendsSidebar = () => {
     fetchFriends();
   }, [protectedFetch]);
 
-  const unfriendUser = async (userId: string) => {
-    setunfriendingIds((prev) => [...prev, userId]);
-    navigate('/friends');
-    const res = await protectedFetch(`/api/user/unfriend/${userId}`, "DELETE");
+  const unfriendUser = async (user: FriendType) => {
+    setunfriendingIds((prev) => [...prev, user._id]);
+    const res = await protectedFetch(`/api/user/unfriend/${user._id}`, "DELETE");
     if (res?.data.success) {
       const toastId = toast("Unfriended", {
         action: {
@@ -47,9 +48,11 @@ const FriendsSidebar = () => {
           onClick: () => toast.dismiss(toastId),
         },
       });
-      setunfriendedIds((prev) => [...prev, userId]);
+      navigate('/friends');
+      setunfriendedIds((prev) => [...prev, user._id]);
+      deleteRoomCard(user.roomId);
     }
-    setunfriendingIds((prev) => prev.filter((id) => id !== userId));
+    setunfriendingIds((prev) => prev.filter((id) => id !== user._id));
   };
 
   const sendFriendRequest = async (toUserId: string) => {
@@ -177,7 +180,7 @@ const FriendsSidebar = () => {
                           size="sm"
                           variant="outline"
                           disabled={unfriendingIds.includes(user._id)}
-                          onClick={(e) =>{e.stopPropagation(); unfriendUser(user._id)}}
+                          onClick={(e) =>{e.stopPropagation(); unfriendUser(user)}}
                         >
                           {unfriendingIds.includes(user._id)
                             ? "Unfriending..."
