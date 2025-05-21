@@ -15,7 +15,7 @@ import { Input } from "../ui/input";
 import { useState } from "react";
 import { RoomType } from "@/utils/types";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import useToast from "../ui/Toast";
+import useToast from "../../hooks/useToast";
 import useSelectedRoomState from "@/stores/selectedRoomStore";
 import useRoomCardState from "@/stores/roomCardSrore";
 

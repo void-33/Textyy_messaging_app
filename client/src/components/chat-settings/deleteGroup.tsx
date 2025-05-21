@@ -12,7 +12,7 @@ import {
 import { useSidebar } from "../ui/sidebar";
 import { RoomType } from "@/utils/types";
 import useProtectedFetch from "@/hooks/useProtectedFetch";
-import useToast from "../ui/Toast";
+import useToast from "../../hooks/useToast";
 import useSelectedRoomState from "@/stores/selectedRoomStore";
 import { CircleMinus } from "lucide-react";
 import { useNavigate } from "react-router-dom";

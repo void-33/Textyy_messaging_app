@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import axios from "axios";
-import useToast from "./ui/Toast";
+import useToast from "../hooks/useToast";
 
 const COOLDOWN_SECONDS = 60;
 

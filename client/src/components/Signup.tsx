@@ -30,7 +30,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import axios from "axios";
-import useToast from "./ui/Toast";
+import useToast from "../hooks/useToast";
 import useAuthPageModeState from "@/stores/authPageModeStore";
 import { useNavigate } from "react-router-dom";
 

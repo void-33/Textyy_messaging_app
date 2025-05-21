@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/authContext";
 import useAccessTokenStore from "@/stores/accessTokenStore";
 import axios, { AxiosRequestConfig } from "axios";
-import useToast from "@/components/ui/Toast";
+import useToast from "@/hooks/useToast";
 import { useCallback } from "react";
 
 const API_BASE = "http://localhost:3500";

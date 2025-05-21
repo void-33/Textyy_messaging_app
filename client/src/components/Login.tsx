@@ -25,7 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/authContext";
 import useAccessTokenStore from "@/stores/accessTokenStore";
 import useCurrUserState from "@/stores/currUserStore";
-import useToast from "./ui/Toast";
+import useToast from "../hooks/useToast";
 import axios from "axios";
 
 const formSchema = z.object({

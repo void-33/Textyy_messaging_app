@@ -12,7 +12,7 @@ import GroupInit from "./chat-settings/groupInit";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 
 import useSocketStore from "@/stores/socketStore";
-import useToast from "./ui/Toast";
+import useToast from "../hooks/useToast";
 import useRoomCardState from "@/stores/roomCardSrore";
 
 import { RoomCardType } from "@/utils/types";

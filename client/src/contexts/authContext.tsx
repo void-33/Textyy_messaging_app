@@ -8,7 +8,7 @@ import {
 import useAccessTokenStore from "../stores/accessTokenStore";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import useToast from "@/components/ui/Toast";
+import useToast from "@/hooks/useToast";
 import useCurrUserState from "@/stores/currUserStore";
 
 interface AuthContextType {
